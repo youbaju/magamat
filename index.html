@@ -529,10 +529,10 @@ flex-shrink: 0;
   /* ===== القائمة المنسدلة التي تحوي الدائرة (تنزلق من اليمين) ===== */
   .c-circle-drawer{
     position: fixed;
-    top: var(--tabs-h); right: -340px;
+    top: 0; right: -340px;
     width: 320px;
-    height: calc(100vh - var(--tabs-h));
-    height: calc(100svh - var(--tabs-h));
+    height: 100vh;
+    height: 100svh;
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 0;
@@ -1788,10 +1788,22 @@ const circleMenuToggleEl = document.getElementById('c-menuToggle');
 function openCircleDrawer(){
   circleDrawerEl.classList.add('open');
   circleOverlayEl.classList.add('active');
+  const tabsToggleBtn = document.getElementById('siteTabsToggle');
+  if (tabsToggleBtn) tabsToggleBtn.style.visibility = 'hidden';
+  const westernBtnsRow = document.getElementById('westernBtnsRow');
+  if (westernBtnsRow && westernBtnsRow.style.display !== 'none') westernBtnsRow.style.visibility = 'hidden';
+  const selectionSummary = document.querySelector('.c-selection-summary');
+  if (selectionSummary) selectionSummary.style.visibility = 'hidden';
 }
 function closeCircleDrawer(){
   circleDrawerEl.classList.remove('open');
   circleOverlayEl.classList.remove('active');
+  const tabsToggleBtn = document.getElementById('siteTabsToggle');
+  if (tabsToggleBtn) tabsToggleBtn.style.visibility = 'visible';
+  const westernBtnsRow = document.getElementById('westernBtnsRow');
+  if (westernBtnsRow) westernBtnsRow.style.visibility = 'visible';
+  const selectionSummary = document.querySelector('.c-selection-summary');
+  if (selectionSummary) selectionSummary.style.visibility = 'visible';
 }
 circleMenuToggleEl.addEventListener('click', openCircleDrawer);
 circleOverlayEl.addEventListener('click', closeCircleDrawer);
