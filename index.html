@@ -99,6 +99,14 @@ body{ width:100vw; overflow-x:hidden; }
   cursor:pointer;
   box-shadow:0 3px 10px rgba(20,20,20,.1);
 }
+/* بوضع اليد اليسرى، زند العود ينعكس فيتغطى الجزء اليمين من الشاشة بالقوائم - فنبدّل مكان الزرين عشان يبقوا دايماً بالجهة اللي ما فيها زند مهم */
+body.hand-left-mode .site-tabs-toggle{ left:auto; right:10px; }
+body.hand-left-mode .c-menu-toggle{ right:auto; left:10px; }
+/* بوضع اليد اليسرى، القوائم (فصائل المقامات، دائرة الرابعات والخامسات، الكوردات) لازم تنزلق من نفس جهة الزر (اليسار)، مو دايماً من اليمين */
+body.hand-left-mode .panel{ right:auto; left:-280px; box-shadow: 4px 0 16px rgba(0,0,0,0.2); }
+body.hand-left-mode .panel.open{ left:0; }
+body.hand-left-mode .c-circle-drawer{ right:auto; left:-340px; box-shadow: 4px 0 16px rgba(0,0,0,0.25); }
+body.hand-left-mode .c-circle-drawer.open{ left:0; }
 .site-tabs-toggle:hover{ background:#fff7e6; }
 
 /* زر فتح صفحة التواصل — بمنتصف الشريط العلوي */
@@ -558,6 +566,104 @@ flex-shrink: 0;
     width: 100%;
   }
 
+  /* ===== تبويب الدائرة/الكوردات أعلى القائمة ===== */
+  .c-drawer-tabs{
+    display: flex;
+    width: 100%;
+    margin: -16px -16px 10px -16px;
+    width: calc(100% + 32px);
+    border-bottom: 1px solid #ececec;
+    box-shadow: 0 4px 14px rgba(20,20,20,.05);
+  }
+  .c-drawer-tab{
+    flex: 1;
+    padding: 15px 6px;
+    border: none;
+    background: #fafafa;
+    color: #777;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  .c-drawer-tab.active{
+    background: linear-gradient(135deg, #eaf6fc 0%, #d5edf9 100%);
+    color: #1b1410;
+    border-bottom-color: #3ab4e8;
+  }
+  #cCirclePane, #cChordsPane{
+    width:100%; display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .c-chords-list{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c-chords-type-row{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .c-chords-type-minor-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .c-chords-type-btn{
+    flex: 1 1 auto;
+    min-width: 68px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #fdf4e3;
+    color: #5c3414;
+    border: 1.5px solid var(--accent-gold, #c9a14a);
+    border-radius: 10px;
+    padding: 7px 4px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .c-chords-type-btn-major{
+    width: 100%;
+    font-size: 0.95rem;
+    padding: 11px 4px;
+    font-weight: 800;
+  }
+  .c-chords-type-btn:hover{ background:#fbeccb; }
+  .c-chords-type-btn.active{
+    background: #1a5fa8;
+    color:#fff;
+    border-color: #0d3a6e;
+    font-weight: 800;
+    box-shadow: 0 3px 10px rgba(26,95,168,.4);
+  }
+  .c-chord-btn{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #eaf6fc;
+    border: 2px solid #3ab4e8;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #1a5fa8;
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    width: 100%;
+  }
+  .c-chord-btn:hover{ background:#d8eefb; }
+  .c-chord-btn.selected{
+    background: #1f7a4d; color:#fff; border-color:#7fe0a8;
+  }
+  .c-chord-degree{ font-size:1.15rem; color:#1a5fa8; font-weight:800; direction:ltr; unicode-bidi:isolate; }
+  .c-chord-namestr{ }
+  .c-chord-btn.selected .c-chord-degree{ color:#fff; }
+
   /* ===== ملخص الاختيار — يُعرض فوق زند العود مباشرةً كـ overlay شفاف ===== */
   .c-selection-summary{
     position: fixed;
@@ -837,6 +943,7 @@ flex-shrink: 0;
   svg#shared-oudSvg #svgContactBtn rect{ pointer-events:auto; }
   svg#shared-oudSvg #svgContactBtn text{ pointer-events:none; }
   svg#shared-oudSvg #oudNotesLayer rect{ pointer-events:auto; cursor:pointer; }
+  svg#shared-oudSvg #chordHighlightLayer rect{ pointer-events:auto; cursor:pointer; }
   /* مكون مشغل الصوت (audio-player وملحقاته) معرّف مرة واحدة بالقسم المشترك بالأسفل */
   .shared-oud-area .audio-player{ margin-top:-40px; margin-left:auto; margin-right:auto; }
 
@@ -1323,6 +1430,17 @@ input[type="radio"] {
       <p style="margin-right:18px;">- لو ضغطت زر <strong>تشغيل ▶</strong> وفيه نغمة مفردة مستمرة شغالة، تتوقف النغمة المفردة تلقائياً ويبدأ تشغيل السلم/المقام كاملاً.</p>
       <p style="margin-right:18px;">- والعكس: لو كان السلم/المقام شغال تسلسلياً وضغطت على أي مستطيل نغمة، يتوقف التشغيل التسلسلي تلقائياً وتبدأ النغمة المفردة المستمرة بدلاً منه.</p>
     </div>
+
+    <div class="help-section">
+      <h3>١٠. كوردات السلالم الغربية</h3>
+      <p>بالإضافة للسلالم نفسها، يوفر الموقع <strong>الكوردات السبعة</strong> (الدرجات الموسيقية) لكل سلم غربي — تظهر النغمات الثلاث المكوّنة لكل كورد معاً على زند العود، بأقرب وأسهل أوضاع للعزف.</p>
+      <p>🔹 <strong>فتح قائمة الكوردات:</strong> اضغط زر <strong>"☰ اختر من الدائرة"</strong> فوق العود (بتبويب المقامات الغربية)، ثم اضغط تبويب <strong>"الكوردات"</strong> أعلى القائمة، بدل تبويب "دائرة الرابعات والخامسات".</p>
+      <p>🔹 <strong>اختيار نوع السلم:</strong> داخل قائمة الكوردات نفسها، فيه صف أزرار (Major / Minor طبيعي / Minor توافقي / Minor ميلودي) يتيح لك التبديل بين الأنواع الأربعة مباشرة، وتتحدث الكوردات فوراً بدون ما تحتاج تغلق القائمة.</p>
+      <p>🔹 <strong>اختيار كورد:</strong> تظهر الكوردات السبعة بدرجاتها (I, ii, iii, IV, V, vi, vii°...)، وباسم كل كورد الكامل (مثل "دو Major" أو "رى Minor"). اضغط على أي كورد لتختاره — تضيء نغماته الثلاث على الزند بالأزرق، وتختفي نغمات السلم العادية مؤقتاً لتوضيح الكورد لوحده.</p>
+      <p>🔹 <strong>تشغيل الكورد كاملاً:</strong> بعد اختيار الكورد، استخدم زر <strong>▶ التشغيل</strong> بالمشغل بالأسفل لسماع النغمات الثلاث تُعزف معاً بصوت مستمر — وتتحول إضاءتها للأخضر أثناء التشغيل. تعمل بقية أزرار المشغل (⏸ إيقاف مؤقت، ⏹ إيقاف) بنفس طريقتها المعتادة.</p>
+      <p>🔹 <strong>سماع كل نغمة لحالها:</strong> يمكنك أيضاً الضغط على أي نغمة من الثلاث مباشرة (بنفس تقنية النغمة المستمرة) للتأكد من صوتها فرادى، قبل أو بدل سماع الكورد كاملاً معاً.</p>
+      <p>🔹 <strong>الرجوع للسلم:</strong> اضغط تبويب "دائرة الرابعات والخامسات" بأعلى القائمة، أو اختر مقاماً جديداً من الدائرة، للرجوع لعرض السلم العادي على الزند.</p>
+    </div>
     </div>
 
   </div>
@@ -1330,13 +1448,31 @@ input[type="radio"] {
 
 <div class="site-page active" id="page-circle">
 
-<button class="c-menu-toggle" id="c-menuToggle">☰ اختيار المقام</button>
+<button class="c-menu-toggle" id="c-menuToggle">☰ اختر من الدائرة</button>
 <div class="c-overlay" id="c-overlay"></div>
 
 <div class="c-panel c-circle-drawer" id="c-circleWrap">
-  <div class="c-drawer-title">اختر المفتاح</div>
-  <svg id="c-circleSvg" width="380" height="380" viewBox="0 0 380 380"></svg>
-  <div class="circle-zoom-note">💡 الخانات 5، 6، 7 تحتوي على اسمين — كبّر الدائرة للاختيار الدقيق</div>
+  <div class="c-drawer-tabs" id="cDrawerTabs">
+    <button class="c-drawer-tab active" id="cTabCircle" type="button">دائرة الرابعات والخامسات</button>
+    <button class="c-drawer-tab" id="cTabChords" type="button">الكوردات</button>
+  </div>
+  <div id="cCirclePane">
+    <div class="c-drawer-title">اختر المفتاح</div>
+    <svg id="c-circleSvg" width="380" height="380" viewBox="0 0 380 380"></svg>
+    <div class="circle-zoom-note">💡 الخانات 5، 6، 7 تحتوي على اسمين — كبّر الدائرة للاختيار الدقيق</div>
+  </div>
+  <div id="cChordsPane" style="display:none;">
+    <div class="c-drawer-title" id="cChordsTitle">كوردات</div>
+    <div id="cChordsTypeRow" class="c-chords-type-row">
+      <button type="button" class="c-chords-type-btn c-chords-type-btn-major" data-scale="major">Major</button>
+      <div class="c-chords-type-minor-row">
+        <button type="button" class="c-chords-type-btn" data-scale="naturalMinor">Minor طبيعي</button>
+        <button type="button" class="c-chords-type-btn" data-scale="harmonicMinor">Minor توافقي</button>
+        <button type="button" class="c-chords-type-btn" data-scale="melodicMinor">Minor ميلودي</button>
+      </div>
+    </div>
+    <div id="cChordsList" class="c-chords-list"></div>
+  </div>
 </div>
 
 
@@ -1492,6 +1628,7 @@ window.isArabicMode = false;
 
   function showPage(targetId){
     if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+    if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
     pages.forEach(p => p.classList.toggle('active', p.id === targetId));
     if(targetId === 'page-social'){
       sharedOudArea.style.display = 'none';
@@ -1532,6 +1669,11 @@ window.isArabicMode = false;
       sessionStorage.setItem('oudActiveTab', targetId);
       // إيقاف الأصوات قبل تغيير التبويب
       document.getElementById('shared-stopBtn').click();
+      if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+      if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+      window.chordModeActive = false;
+      window.selectedChord = null;
+      if (typeof window.clearChordHighlight === 'function') window.clearChordHighlight();
       if (window._currentPlayingRect) {
         const r = window._currentPlayingRect;
         if (r._sourceNode) { try { r._sourceNode.stop(); } catch(e){} }
@@ -1769,6 +1911,10 @@ function updateCircleHighlight(){
 
 function selectRootAndType(root, scaleType, letterOverride){
   if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+  if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+  window.chordModeActive = false;
+  window.selectedChord = null;
+  if (typeof clearChordHighlight === 'function') clearChordHighlight();
   state.root = root;
   state.scaleType = scaleType;
   state.letterOverride = (letterOverride === undefined) ? null : letterOverride;
@@ -1780,40 +1926,269 @@ function selectRootAndType(root, scaleType, letterOverride){
   if (typeof renderAll === 'function') renderAll();
 }
 
-// فتح/إغلاق القائمة المنسدلة لاختيار المقام (الدائرة)
+// فتح/إغلاق القائمة المنسدلة لاختيار المقام (الدائرة) أو الكوردات
 const circleDrawerEl = document.getElementById('c-circleWrap');
 const circleOverlayEl = document.getElementById('c-overlay');
 const circleMenuToggleEl = document.getElementById('c-menuToggle');
+let currentDrawerMode = 'circle'; // 'circle' أو 'chords' - آخر وضع مختار (يبقى محفوظ حتى لو أغلقنا وفتحنا)
+
+function updateMenuToggleLabel(){
+  circleMenuToggleEl.textContent = (currentDrawerMode === 'chords') ? '☰ اختر الكوردات' : '☰ اختر من الدائرة';
+}
 
 function openCircleDrawer(){
   circleDrawerEl.classList.add('open');
   circleOverlayEl.classList.add('active');
+  circleMenuToggleEl.style.visibility = 'hidden';
   const tabsToggleBtn = document.getElementById('siteTabsToggle');
   if (tabsToggleBtn) tabsToggleBtn.style.visibility = 'hidden';
   const westernBtnsRow = document.getElementById('westernBtnsRow');
   if (westernBtnsRow && westernBtnsRow.style.display !== 'none') westernBtnsRow.style.visibility = 'hidden';
   const selectionSummary = document.querySelector('.c-selection-summary');
   if (selectionSummary) selectionSummary.style.visibility = 'hidden';
+  showDrawerMode(currentDrawerMode);
 }
 function closeCircleDrawer(){
   circleDrawerEl.classList.remove('open');
   circleOverlayEl.classList.remove('active');
+  circleMenuToggleEl.style.visibility = 'visible';
   const tabsToggleBtn = document.getElementById('siteTabsToggle');
   if (tabsToggleBtn) tabsToggleBtn.style.visibility = 'visible';
   const westernBtnsRow = document.getElementById('westernBtnsRow');
   if (westernBtnsRow) westernBtnsRow.style.visibility = 'visible';
   const selectionSummary = document.querySelector('.c-selection-summary');
   if (selectionSummary) selectionSummary.style.visibility = 'visible';
+  updateMenuToggleLabel();
 }
 circleMenuToggleEl.addEventListener('click', openCircleDrawer);
 circleOverlayEl.addEventListener('click', closeCircleDrawer);
+
+function showDrawerMode(mode){
+  currentDrawerMode = mode;
+  if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer(); // نوقف الصوت الشغال بس، من دون ما نلغي الاختيار نفسه
+  document.getElementById('cTabCircle').classList.toggle('active', mode === 'circle');
+  document.getElementById('cTabChords').classList.toggle('active', mode === 'chords');
+  document.getElementById('cCirclePane').style.display = (mode === 'circle') ? 'flex' : 'none';
+  document.getElementById('cChordsPane').style.display = (mode === 'chords') ? 'flex' : 'none';
+  if (mode === 'chords') renderChordsList();
+}
+document.getElementById('cTabCircle').addEventListener('click', () => showDrawerMode('circle'));
+document.getElementById('cTabChords').addEventListener('click', () => showDrawerMode('chords'));
+
+/* ===== محرك حساب الكوردات (٧ كوردات لأي سلم، بأسمائها ومواقعها على الزند) ===== */
+function buildChordsForScale(root, scaleType){
+  const intervals = SCALES[scaleType].intervals;
+  const letterIdx0 = getRootLetterIndex(root, scaleType, state.letterOverride);
+  const chords = [];
+  for (let i = 0; i < 7; i++){
+    const rootIv = intervals[i];
+    const thirdIv = intervals[(i+2) % 7] + (i+2 >= 7 ? 12 : 0);
+    const fifthIv = intervals[(i+4) % 7] + (i+4 >= 7 ? 12 : 0);
+    const rootPC = (root + rootIv) % 12;
+    const thirdPC = (root + thirdIv) % 12;
+    const fifthPC = (root + fifthIv) % 12;
+    const thirdDist = (thirdIv - rootIv + 12) % 12;
+    const fifthDist = (fifthIv - rootIv + 12) % 12;
+    let quality;
+    if (thirdDist === 4 && fifthDist === 7) quality = 'Major';
+    else if (thirdDist === 3 && fifthDist === 7) quality = 'Minor';
+    else if (thirdDist === 3 && fifthDist === 6) quality = 'Diminished';
+    else if (thirdDist === 4 && fifthDist === 8) quality = 'Augmented';
+    else quality = 'Major';
+    const rootLetterIdx = (letterIdx0 + i) % 7;
+    const thirdLetterIdx = (letterIdx0 + i + 2) % 7;
+    const fifthLetterIdx = (letterIdx0 + i + 4) % 7;
+    const rootLetterName = getCorrectNoteName(rootPC, rootLetterIdx);
+    // نبني رمز الدرجة (الرقم الروماني) من نوع الكورد المحسوب فعلياً لهذا السلم بالذات، مو من جدول ثابت يفترض المينور الطبيعي بس
+    const ROMAN_BASE = ['I','II','III','IV','V','VI','VII'];
+    let roman = ROMAN_BASE[i];
+    if (quality === 'Minor' || quality === 'Diminished') roman = roman.toLowerCase();
+    if (quality === 'Diminished') roman += '°';
+    else if (quality === 'Augmented') roman += '+';
+    let displayName;
+    const RLM = '\u200F'; // علامة اتجاه خفية (يمين لليسار) تلصق الرمز (# أو x أو ♭) بالحرف العربي الصحيح، قبل ما تبدأ الكلمة الإنجليزية
+    if (quality === 'Major') displayName = rootLetterName + RLM + ' Major';
+    else if (quality === 'Minor') displayName = rootLetterName + RLM + ' Minor';
+    else if (quality === 'Diminished') displayName = rootLetterName + RLM + ' Diminished';
+    else displayName = rootLetterName + RLM + ' Augmented';
+    chords.push({ degree:i+1, roman, rootPC, thirdPC, fifthPC, rootLetterIdx, thirdLetterIdx, fifthLetterIdx, quality, name:displayName });
+  }
+  return chords;
+}
+
+// يلقى أفضل توليفة أوتار/فريتات متقاربة لثلاث نغمات (كل وحدة على وتر مختلف)
+function findChordPositions(pcs){
+  const optionsPerNote = pcs.map(pc => {
+    const opts = [];
+    for (let s = 0; s < OUD.STRING_COUNT; s++){
+      for (let f = 0; f <= 12; f++){
+        if (OUD.noteAt(s, f) === pc) opts.push({ string:s, fret:f });
+      }
+    }
+    return opts;
+  });
+  let best = null, bestScore = Infinity;
+  for (const p0 of optionsPerNote[0]){
+    for (const p1 of optionsPerNote[1]){
+      if (p1.string === p0.string) continue;
+      for (const p2 of optionsPerNote[2]){
+        if (p2.string === p0.string || p2.string === p1.string) continue;
+        const midis = [p0, p1, p2].map(p => OUD.STRING_OPEN_MIDI[p.string] + p.fret);
+        const pitchSpan = Math.max(...midis) - Math.min(...midis); // مدى الطبقة الصوتية
+        const frets = [p0.fret, p1.fret, p2.fret];
+        const maxFret = Math.max(...frets); // نفضل فريتات قريبة من العتلة (طبيعية بالعزف)
+        const fretSpan = Math.max(...frets) - Math.min(...frets);
+        const score = maxFret * 2 + pitchSpan * 1 + fretSpan * 0.1;
+        if (score < bestScore){ bestScore = score; best = [p0, p1, p2]; }
+      }
+    }
+  }
+  return best;
+}
+
+function renderChordsList(){
+  const titleEl = document.getElementById('cChordsTitle');
+  const scaleLabel = SCALES[state.scaleType].name;
+  const rootLetterIdx = getRootLetterIndex(state.root, state.scaleType, state.letterOverride);
+  const rootName = getCorrectNoteName(state.root, rootLetterIdx);
+  titleEl.textContent = `كوردات ${rootName} ${scaleLabel}`;
+
+  // نزامن زر النوع النشط جوا لوحة الكوردات نفسها مع النوع الحالي فعلياً
+  document.querySelectorAll('.c-chords-type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.scale === state.scaleType);
+  });
+
+  const chords = buildChordsForScale(state.root, state.scaleType);
+  const listEl = document.getElementById('cChordsList');
+  listEl.innerHTML = '';
+  chords.forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'c-chord-btn';
+    btn.type = 'button';
+    btn.innerHTML = `<span class="c-chord-degree">${ch.roman}</span><span class="c-chord-namestr">${ch.name}</span>`;
+    btn.addEventListener('click', () => selectChord(ch, btn));
+    // نرجّع تعليم "مختار" لآخر كورد كان محدد (لو لسا ينتمي لنفس السلم الحالي)، عشان يبقى المستخدم يشوفه بعد ما يفتح/يسكر القائمة
+    if (window.selectedChord && window.selectedChord.rootPC === ch.rootPC &&
+        window.selectedChord.thirdPC === ch.thirdPC && window.selectedChord.fifthPC === ch.fifthPC) {
+      btn.classList.add('selected');
+    }
+    listEl.appendChild(btn);
+  });
+}
+
+/* ===== اختيار كورد وتشغيله (٣ نغمات مع بعض، متحكم فيها بأزرار المشغل) ===== */
+window.selectedChord = null;
+let chordPlayState = 'stopped'; // 'stopped' | 'playing' | 'paused'
+let currentChordSustain = null; // { handles: [...], positions: [...] }
+const chordHighlightLayer = el('g', { id:'chordHighlightLayer' });
+
+function clearChordHighlight(){
+  chordHighlightLayer.innerHTML = '';
+  if (oudNotesLayer) oudNotesLayer.style.display = '';
+}
+window.clearChordHighlight = clearChordHighlight;
+
+function renderChordHighlight(positions, active){
+  chordHighlightLayer.innerHTML = '';
+  if (oudNotesLayer) oudNotesLayer.style.display = 'none'; // نخفي نغمات السلم العادية عشان الكورد يبين لوحده بدون تراكب
+  positions.forEach(pos => {
+    const p = OUD.getPoint(pos.string, pos.fret);
+    const boxW = 64, boxH = 32;
+    const rect = el('rect', {
+      x: p.x-boxW/2, y: p.y-boxH/2, width:boxW, height:boxH, rx:4,
+      fill: active ? '#1f7a4d' : '#2b6fc9',
+      stroke: active ? '#7fe0a8' : '#1a5fa8',
+      'stroke-width': active ? 4 : 2,
+    });
+    rect.style.cursor = 'pointer';
+    chordHighlightLayer.appendChild(rect);
+    const label = el('text', {
+      x:p.x, y:p.y+7, fill:'#fff', 'font-size':'22',
+      'font-family':"'Cairo', Arial, sans-serif", 'font-weight':'700', 'text-anchor':'middle'
+    });
+    label.style.pointerEvents = 'none'; // عشان الضغطة الفعلية توصل للمستطيل تحته، مو تنحبس بالنص فوقه
+    const pc = OUD.noteAt(pos.string, pos.fret);
+    label.textContent = getCorrectNoteName(pc, pos.letterIdx !== undefined ? pos.letterIdx : 0);
+    chordHighlightLayer.appendChild(label);
+    // نخلي كل نوتة بالكورد تشتغل لحالها بالضغط عليها (نفس آلية النغمة المستمرة بنغمات السلم العادية)
+    const noteIndex = positions.indexOf(pos);
+    rect.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let freshRect = rect;
+      if (chordPlayState !== 'stopped' && typeof window.resetChordPlayer === 'function') {
+        window.resetChordPlayer(); // نوقف التشغيل الجماعي للكورد لو كان شغال فعلاً بس (يعيد رسم الإضاءة، فنحتاج مرجع طازج)
+        freshRect = chordHighlightLayer.querySelectorAll('rect')[noteIndex] || rect;
+      }
+      const noteFreq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
+      window.toggleSustainedNoteOnRect(freshRect, noteFreq,
+        (liveRect) => { liveRect.setAttribute('fill', '#1f7a4d'); liveRect.setAttribute('stroke', '#7fe0a8'); liveRect.setAttribute('stroke-width', 4); },
+        (liveRect) => { liveRect.setAttribute('fill', '#2b6fc9'); liveRect.setAttribute('stroke', '#1a5fa8'); liveRect.setAttribute('stroke-width', 2); }
+      );
+    });
+  });
+  if (typeof window.applyOudHorizontalMirror === 'function') window.applyOudHorizontalMirror(chordHighlightLayer);
+}
+
+function selectChord(ch, btnEl){
+  resetChordPlayer(); // نوقف أي كورد كان شغال قبل
+  document.querySelectorAll('.c-chord-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  const rawPositions = findChordPositions([ch.rootPC, ch.thirdPC, ch.fifthPC]);
+  const letterIndices = [ch.rootLetterIdx, ch.thirdLetterIdx, ch.fifthLetterIdx];
+  const positions = rawPositions.map((pos, idx) => ({ ...pos, letterIdx: letterIndices[idx] }));
+  window.selectedChord = { ...ch, positions };
+  window.chordModeActive = true;
+  renderChordHighlight(positions, false);
+  if (typeof resetPlayer === 'function') resetPlayer(); // نوقف أي سلم تسلسلي شغال، ونرجع الزر لحالة "▶"
+}
+
+function startChordPlaying(){
+  if (!window.selectedChord) return;
+  if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote(); // نوقف أي نغمة مفردة شغالة لحالها قبل التشغيل الجماعي
+  chordPlayState = 'playing';
+  playBtn.textContent = '⏸';
+  playBtn.title = 'إيقاف مؤقت';
+  stopBtn.disabled = false;
+  const handles = window.selectedChord.positions.map(pos => {
+    const freq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
+    return startSustainedNote(freq);
+  });
+  currentChordSustain = { handles, positions: window.selectedChord.positions };
+  renderChordHighlight(window.selectedChord.positions, true);
+}
+
+function pauseChordPlaying(){
+  chordPlayState = 'paused';
+  playBtn.textContent = '▶';
+  playBtn.title = 'استئناف';
+  if (currentChordSustain){
+    currentChordSustain.handles.forEach(h => stopSustainedNote(h));
+    currentChordSustain = null;
+  }
+  if (window.selectedChord) renderChordHighlight(window.selectedChord.positions, false);
+}
+
+function resumeChordPlaying(){
+  startChordPlaying();
+}
+
+function resetChordPlayer(){
+  chordPlayState = 'stopped';
+  if (currentChordSustain){
+    currentChordSustain.handles.forEach(h => stopSustainedNote(h));
+    currentChordSustain = null;
+  }
+  if (playBtn){ playBtn.textContent = '▶'; playBtn.title = 'تشغيل'; }
+  if (stopBtn) stopBtn.disabled = true;
+  if (window.selectedChord) renderChordHighlight(window.selectedChord.positions, false);
+}
+window.resetChordPlayer = resetChordPlayer;
 
 majorSegments.forEach(seg => {
   seg.addEventListener('click', () => {
     document.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('[data-scale="major"]').classList.add('active');
     selectRootAndType(+seg.dataset.root, 'major', null);
-    closeCircleDrawer();
   });
 });
 minorSegments.forEach(seg => {
@@ -1821,7 +2196,6 @@ minorSegments.forEach(seg => {
     document.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector('[data-scale="naturalMinor"]').classList.add('active');
     selectRootAndType(+seg.dataset.root, 'naturalMinor', null);
-    closeCircleDrawer();
   });
 });
 
@@ -1837,7 +2211,6 @@ dualLabelElements.forEach(labelEl => {
     document.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector(`[data-scale="${targetBtnScale}"]`).classList.add('active');
     selectRootAndType(root, scaleType, letterIdx);
-    closeCircleDrawer();
   });
 });
 
@@ -1856,6 +2229,25 @@ document.querySelectorAll('.scale-btn').forEach(btn => {
       newRoot = (state.root + 3) % 12; // من مينور لماجور: الجذر المتعلق
     }
     selectRootAndType(newRoot, btn.dataset.scale, wasMajor === willBeMajor ? state.letterOverride : null);
+  });
+});
+
+// نفس منطق أزرار نوع السلم بالضبط، بس جوا لوحة الكوردات - يبقى القائمة مفتوحة ويحدّث الكوردات فوراً
+document.querySelectorAll('.c-chords-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const wasMajor = (state.scaleType === 'major');
+    const willBeMajor = (btn.dataset.scale === 'major');
+    let newRoot = state.root;
+    if (wasMajor && !willBeMajor) {
+      newRoot = (state.root + 9) % 12;
+    } else if (!wasMajor && willBeMajor) {
+      newRoot = (state.root + 3) % 12;
+    }
+    // نزامن حالة أزرار النوع الرئيسية (فوق العود) كمان، عشان تبقى متطابقة
+    document.querySelectorAll('.scale-btn').forEach(b => b.classList.toggle('active', b.dataset.scale === btn.dataset.scale));
+    selectRootAndType(newRoot, btn.dataset.scale, wasMajor === willBeMajor ? state.letterOverride : null);
+    // نبقي القائمة مفتوحة على تبويب الكوردات، ونعيد رسمها فوراً بالنوع الجديد
+    showDrawerMode('chords');
   });
 });
 
@@ -1884,6 +2276,22 @@ function updateNowPlaying(){
 const OUD = (function(){
   // نقرأ اختيار اليد المحفوظ لهذي الجلسة (يبقى محفوظ حتى لو حدّثنا الصفحة، ويُمسح لو سكرنا التبويب وفتحناه من جديد)
   window.isLeftHanded = (sessionStorage.getItem('oudHandPref') === 'left');
+  document.body.classList.toggle('hand-left-mode', window.isLeftHanded);
+  window.syncHandButtonPositions = function(){
+    const tabsBtn = document.getElementById('siteTabsToggle');
+    const menuBtn = document.getElementById('c-menuToggle');
+    const arMenuBtn = document.getElementById('menuToggle'); // زر اختيار المقام بالجانب العربي (منفصل عن الغربي)
+    if (window.isLeftHanded) {
+      if (tabsBtn) { tabsBtn.style.left = 'auto'; tabsBtn.style.right = '10px'; }
+      if (menuBtn) { menuBtn.style.right = 'auto'; menuBtn.style.left = '10px'; }
+      if (arMenuBtn) { arMenuBtn.style.right = 'auto'; arMenuBtn.style.left = '10px'; }
+    } else {
+      if (tabsBtn) { tabsBtn.style.right = 'auto'; tabsBtn.style.left = '10px'; }
+      if (menuBtn) { menuBtn.style.left = 'auto'; menuBtn.style.right = '10px'; }
+      if (arMenuBtn) { arMenuBtn.style.left = 'auto'; arMenuBtn.style.right = '10px'; }
+    }
+  };
+  setTimeout(() => window.syncHandButtonPositions(), 0);
   const NUT_X = 1250;
   const VISUAL_NUT_X = 1190;
   const NECK_END_X = -450;
@@ -1928,7 +2336,7 @@ const OUD = (function(){
 
   return {
     NUT_X, VISUAL_NUT_X, NECK_END_X, NUT_TOP_Y, NUT_BOTTOM_Y, WIDEN,
-    FRET7_INDEX, FRET_COUNT, STRING_COUNT, STRING_TUNING,
+    FRET7_INDEX, FRET_COUNT, STRING_COUNT, STRING_TUNING, STRING_OPEN_MIDI,
     neckTopY, neckBottomY, fretX, stringY, getPoint, noteAt, frequencyAt
   };
 })();
@@ -1991,6 +2399,7 @@ const oudStatic = el('g', { id:'oudStatic' });
 const oudNotesLayer = el('g', { id:'oudNotesLayer' });
 oudSvg.appendChild(oudStatic);
 oudSvg.appendChild(oudNotesLayer);
+oudSvg.appendChild(chordHighlightLayer);
 
 const arabicNum = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١١','١٢','١٣'];
 
@@ -2238,6 +2647,7 @@ function buildOudStatic(){
       hg.addEventListener('click', () => {
         if (window.isLeftHanded === isLeft) return; // نفس الاختيار، ما نسوي شي
         if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+        if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
         // نوقف أي تشغيل تسلسلي شغال (سلم غربي أو مقام عربي) قبل ما ننعكس، عشان ما يستمر بالخلفية
         if (window.isArabicMode) {
           if (typeof window.arGetPlayerState === 'function' && window.arGetPlayerState() !== 'stopped' && typeof window.arResetPlayer === 'function') {
@@ -2249,8 +2659,18 @@ function buildOudStatic(){
           }
         }
         window.isLeftHanded = isLeft;
+        document.body.classList.toggle('hand-left-mode', isLeft);
         sessionStorage.setItem('oudHandPref', isLeft ? 'left' : 'right');
         redrawOudEverything();
+        // نطبّق موقع الزرين بعد إعادة الرسم الكاملة (مو قبلها)، عشان أي لمسة من إعادة الرسم ما تلغي التعديل
+        if (typeof window.syncHandButtonPositions === 'function') window.syncHandButtonPositions();
+        // طبقة أمان إضافية: نعيد التطبيق بعد لحظة قصيرة، تحسباً لأي تأخير برسم شي ثاني يلمس الزر
+        setTimeout(() => { if (typeof window.syncHandButtonPositions === 'function') window.syncHandButtonPositions(); }, 150);
+        // نعيد رسم إضاءة الكورد (لو فيه كورد لسا محدد) بعد إعادة الرسم الكاملة، عشان تاخذ انعكاس وضع اليد الجديد الصحيح
+        // (لو ما سوينا هذا، الإضاءة تضل عالقة بمكانها القديم من وضع اليد السابق، لأن إعادة الرسم الكاملة ما تلمسها)
+        if (window.selectedChord && typeof renderChordHighlight === 'function') {
+          renderChordHighlight(window.selectedChord.positions, false);
+        }
       });
       return hg;
     }
@@ -2406,6 +2826,7 @@ function buildOudStatic(){
   contactG.addEventListener('click', () => {
     document.getElementById('shared-stopBtn').click();
     if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+    if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
     // حفظ الصفحة الحالية
     const active = document.querySelector('.site-page.active');
     window._lastPageBeforeSocial = active ? active.id : 'page-circle';
@@ -2660,6 +3081,7 @@ document.addEventListener('click', function(e) {
                  (e.target.parentElement && e.target.parentElement.id === 'helpBtn');
   if (isHelp) {
     if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+    if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
     const active = document.querySelector('.site-page.active');
     window._lastPage = active ? active.id : 'page-circle';
     document.querySelectorAll('.site-page').forEach(p => p.classList.remove('active'));
@@ -2990,15 +3412,25 @@ function resetPlayer(){
 
 playBtn.addEventListener('click', () => {
   if(window.isArabicMode) return;
+  if (window.chordModeActive && window.selectedChord){
+    if (chordPlayState === 'stopped') startChordPlaying();
+    else if (chordPlayState === 'playing') pauseChordPlaying();
+    else if (chordPlayState === 'paused') resumeChordPlaying();
+    return;
+  }
   window.stopAnySustainedNote();
+  if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
   if(playerState === 'stopped') startPlaying();
   else if(playerState === 'playing') pausePlaying();
   else if(playerState === 'paused') resumePlaying();
 });
-stopBtn.addEventListener('click', () => { resetPlayer(); });
+stopBtn.addEventListener('click', () => {
+  if (window.chordModeActive && window.selectedChord){ resetChordPlayer(); return; }
+  resetPlayer();
+});
 stopBtn.disabled = true;
 rewindBtn.disabled = true;
-rewindBtn.addEventListener('click', () => { if(!window.isArabicMode){ resetPlayer(); startPlaying(); } });
+rewindBtn.addEventListener('click', () => { if(!window.isArabicMode && !window.chordModeActive){ resetPlayer(); startPlaying(); } });
 repeatBtn.addEventListener('click', () => {
   if(window.isArabicMode) return;
   repeatEnabled = !repeatEnabled;
@@ -4015,6 +4447,7 @@ if (westernGuideBtn && westernGuideModal) {
     document.getElementById('shared-playBtn').addEventListener('click', () => {
       if(!window.isArabicMode) return;
       if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+      if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
       if(arPlayerState==='stopped') arStartPlay();
       else if(arPlayerState==='playing') arPause();
       else if(arPlayerState==='paused') arResume();
@@ -4142,6 +4575,7 @@ if (westernGuideBtn && westernGuideModal) {
 
     window.showMaqam = function showMaqam() {
       if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+      if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
       const fasila = currentFasila;
       const maqam = maqamSelect.value;
       const harf = harfSelect.value;
@@ -4251,6 +4685,7 @@ if (westernGuideBtn && westernGuideModal) {
 document.getElementById('shared-playBtn').onclick = async function() {
   if (!currentAudioPath) return;
   if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
+  if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
   const ctx = getAudioContext();
   if (ctx.state === 'suspended') await ctx.resume();
   if (isPlaying) {
