@@ -3455,7 +3455,7 @@ playBtn.addEventListener('click', () => {
     return;
   }
   window.stopAnySustainedNote();
-  if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+  if (playerState === 'stopped' && typeof window.resetChordPlayer === 'function') window.resetChordPlayer(); // ننضّف أي كورد شغال بالخلفية بس وقت بدء تشغيل جديد، مو بكل ضغطة (عشان ما يعطّل زر الإيقاف أثناء الإيقاف المؤقت)
   if(playerState === 'stopped') startPlaying();
   else if(playerState === 'playing') pausePlaying();
   else if(playerState === 'paused') resumePlaying();
@@ -4487,7 +4487,7 @@ if (westernGuideBtn && westernGuideModal) {
     document.getElementById('shared-playBtn').addEventListener('click', () => {
       if(!window.isArabicMode) return;
       if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
-      if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+      if (arPlayerState === 'stopped' && typeof window.resetChordPlayer === 'function') window.resetChordPlayer(); // ننضّف أي كورد شغال بالخلفية بس وقت بدء تشغيل جديد، مو بكل ضغطة
       if(arPlayerState==='stopped') arStartPlay();
       else if(arPlayerState==='playing') arPause();
       else if(arPlayerState==='paused') arResume();
