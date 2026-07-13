@@ -2121,7 +2121,10 @@ function renderChordHighlight(positions, active){
       }
       const noteFreq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
       window.toggleSustainedNoteOnRect(freshRect, noteFreq,
-        (liveRect) => { liveRect.setAttribute('fill', '#1f7a4d'); liveRect.setAttribute('stroke', '#7fe0a8'); liveRect.setAttribute('stroke-width', 4); },
+        (liveRect) => {
+          liveRect.setAttribute('fill', '#1f7a4d'); liveRect.setAttribute('stroke', '#7fe0a8'); liveRect.setAttribute('stroke-width', 4);
+          if (typeof window.vibrateString === 'function') window.vibrateString(pos.string);
+        },
         (liveRect) => { liveRect.setAttribute('fill', '#2b6fc9'); liveRect.setAttribute('stroke', '#1a5fa8'); liveRect.setAttribute('stroke-width', 2); },
         () => OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset)
       );
@@ -2152,6 +2155,7 @@ function startChordPlaying(){
   stopBtn.disabled = false;
   const handles = window.selectedChord.positions.map(pos => {
     const freq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
+    if (typeof window.vibrateString === 'function') window.vibrateString(pos.string);
     return startSustainedNote(freq);
   });
   currentChordSustain = { handles, positions: window.selectedChord.positions };
@@ -4117,11 +4121,13 @@ if (westernGuideBtn && westernGuideModal) {
         const origStrokeAr = isCurrent ? '#7fe0a8' : '#1a5fa8';
         rect.addEventListener('click', () => {
           const arNoteFreq = posToFreq(effectiveQ); // نحسبه هنا (وقت الضغط الفعلي) عشان يعكس آخر دوزان مختار
+          const { s: vibStrIdx } = getStringFret(effectiveQ);
           window.toggleSustainedNoteOnRect(rect, arNoteFreq,
             (liveEl) => {
               const target = liveEl || rect;
               target.setAttribute('fill', '#1f7a4d');
               target.setAttribute('stroke', '#7fe0a8');
+              if (typeof window.vibrateString === 'function') window.vibrateString(vibStrIdx);
             },
             (liveEl) => {
               const target = liveEl || rect;
