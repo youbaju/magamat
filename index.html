@@ -1556,6 +1556,16 @@ input[type="radio"] {
       <option value="faDiaz">فا دييز</option>
       <option value="solHafBimol">صول نصف بيمول</option>
       <option value="solJawab">صول جواب</option>
+      <option value="solHalfDiazJawab">صول نصف دييز جواب</option>
+      <option value="laBimolJawab">لا بيمول جواب</option>
+      <option value="laHafBimolJawab">لا نصف بيمول جواب</option>
+      <option value="laJawab">لا جواب</option>
+      <option value="laHafDiazJawab">لا نصف دييز جواب</option>
+      <option value="siBimolJawab">سي بيمول جواب</option>
+      <option value="siHafBimolJawab">سي نصف بيمول جواب</option>
+      <option value="siJawab">سي جواب</option>
+      <option value="doHafBimolJawab">دو نصف بيمول جواب</option>
+      <option value="doJawab">دو جواب</option>
     </select>
     <button class="show-btn" id="showBtn" style="display:none">اظهار</button>
   </div>
@@ -2477,13 +2487,14 @@ const arabicNum = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩','١٠','١�
 function buildOudStatic(){
   const g2 = oudStatic;
 
-  // 1) حواف الزند
+  // 1) حواف الزند (تمتد لتغطي فريت ١٣ الجديد، بدون ما تغيّر NECK_END_X نفسها المستخدمة بحساب مواقع باقي الدساتين)
+  const outlineEndX = Math.min(OUD.NECK_END_X, OUD.fretX(13) - 20);
   g2.appendChild(el('line', {
-    x1: OUD.VISUAL_NUT_X, y1: OUD.neckTopY(OUD.VISUAL_NUT_X), x2: OUD.NECK_END_X, y2: OUD.neckTopY(OUD.NECK_END_X),
+    x1: OUD.VISUAL_NUT_X, y1: OUD.neckTopY(OUD.VISUAL_NUT_X), x2: outlineEndX, y2: OUD.neckTopY(outlineEndX),
     stroke:'#111', 'stroke-width':6, 'stroke-linecap':'round'
   }));
   g2.appendChild(el('line', {
-    x1: OUD.VISUAL_NUT_X, y1: OUD.neckBottomY(OUD.VISUAL_NUT_X), x2: OUD.NECK_END_X, y2: OUD.neckBottomY(OUD.NECK_END_X),
+    x1: OUD.VISUAL_NUT_X, y1: OUD.neckBottomY(OUD.VISUAL_NUT_X), x2: outlineEndX, y2: OUD.neckBottomY(outlineEndX),
     stroke:'#111', 'stroke-width':6, 'stroke-linecap':'round'
   }));
 
@@ -2498,7 +2509,7 @@ function buildOudStatic(){
   g2.appendChild(el('line', { x1:fret7X,y1:botAt7,x2:shoulderBottomEnd.x,y2:shoulderBottomEnd.y, stroke:'#111','stroke-width':6,'stroke-linecap':'round' }));
 
   // 3) خطوط الدساتين + الأرقام
-  for(let n=1;n<=12;n++){
+  for(let n=1;n<=13;n++){
     const x = OUD.fretX(n);
     const yTop = OUD.neckTopY(x), yBot = OUD.neckBottomY(x);
     g2.appendChild(el('line', { x1:x,y1:yTop,x2:x,y2:yBot, stroke:'#111','stroke-width':1.6 }));
@@ -2515,7 +2526,7 @@ function buildOudStatic(){
     g2.appendChild(el('line', { x1:xQ, y1:yTop, x2:xQ, y2:yBot, stroke:'#8B5E3C', 'stroke-width':1.0, opacity:'1' }));
   }
   // الخطوط بين الدساتين 1-11: منتصف لوغاريتمي صحيح عبر fretX(n+0.5)
-  for(let n=1;n<=11;n++){
+  for(let n=1;n<=12;n++){
     const xQ = OUD.fretX(n + 0.5);
     const yTop = OUD.neckTopY(xQ), yBot = OUD.neckBottomY(xQ);
     g2.appendChild(el('line', { x1:xQ, y1:yTop, x2:xQ, y2:yBot, stroke:'#8B5E3C', 'stroke-width':1.0, opacity:'1' }));
@@ -2527,10 +2538,10 @@ function buildOudStatic(){
   const doubleOffset = [0, 5, 5, 5, 4];
   window._doubleOffset = doubleOffset; // الإزاحة بين الوترين المزدوجين (0 = مفرد)
   const xStringStart = OUD.VISUAL_NUT_X;
-  const xStringEnd = OUD.fretX(12);
+  const xStringEnd = OUD.fretX(13);
   for(let i=0;i<OUD.STRING_COUNT;i++){
     const p1 = OUD.getPoint(i,0);
-    const p2 = OUD.getPoint(i,12);
+    const p2 = OUD.getPoint(i,13);
     // الوتر الرئيسي
     const strLine = el('line', { x1:p1.x,y1:p1.y,x2:p2.x,y2:p2.y, stroke:stringColors[i], 'stroke-width':stringWidths[i], 'stroke-linecap':'round', id:`oudString${i}` });
     g2.appendChild(strLine);
@@ -2554,7 +2565,7 @@ function buildOudStatic(){
     const strEl = document.getElementById(`oudString${stringIdx}`);
     if (!strEl) return;
     const p1 = OUD.getPoint(stringIdx, 0);
-    const p2 = OUD.getPoint(stringIdx, 12);
+    const p2 = OUD.getPoint(stringIdx, 13);
     const ns2 = 'http://www.w3.org/2000/svg';
     const parent = strEl.parentNode;
     const pathEl = document.createElementNS(ns2, 'path');
@@ -2818,7 +2829,7 @@ function buildOudStatic(){
   oudFooterGroup.appendChild(visionImg);
 
   // ضبط الـviewBox
-  let minX = Math.min(shoulderTopEnd.x, OUD.NECK_END_X) - 20;
+  let minX = Math.min(shoulderTopEnd.x, OUD.NECK_END_X, OUD.fretX(13) - 30);
   let maxX = NECK_JOINT_END_X + 5;
   const minY = Math.min(shoulderTopEnd.y, neckJointTopEndY) - 20;
   const maxY = Math.max(shoulderBottomEnd.y, neckJointBottomEndY, visionY + visionSize, oldHelpY + 25 + (66*1.45)/2 + 10) + 20;
@@ -3900,7 +3911,9 @@ if (westernGuideBtn && westernGuideModal) {
       'siBimol','siHafBimol','si','doHafBimol',          // مواضع 0-9  → وتر مي
       'do','doHafDiaz','doDiaz','reHafBimol','re','reHafDiaz',
       'miBimol','miHafBimol','mi','miHafDiaz',           // مواضع 10-19 → وتر لا
-      'fa','faHafDiaz','faDiaz','solHafBimol','solJawab' // مواضع 20-24 → وتر رى
+      'fa','faHafDiaz','faDiaz','solHafBimol','solJawab', // مواضع 20-24 → وتر رى
+      'solHalfDiazJawab','laBimolJawab','laHafBimolJawab','laJawab','laHafDiazJawab',
+      'siBimolJawab','siHafBimolJawab','siJawab','doHafBimolJawab','doJawab' // مواضع 25-34 → امتداد جديد (وتر صول ثم دو)
     ];
 
     const HARF_DISPLAY = {
@@ -3911,7 +3924,10 @@ if (westernGuideBtn && westernGuideModal) {
       'doDiaz':'دو دييز','reHafBimol':'رى نصف بيمول','re':'رى',
       'reHafDiaz':'رى نصف دييز','miBimol':'مي بيمول','miHafBimol':'مي نصف بيمول',
       'mi':'مي','miHafDiaz':'مي نصف دييز','fa':'فا','faHafDiaz':'فا نصف دييز',
-      'faDiaz':'فا دييز','solHafBimol':'صول نصف بيمول','solJawab':'صول'
+      'faDiaz':'فا دييز','solHafBimol':'صول نصف بيمول','solJawab':'صول',
+      'solHalfDiazJawab':'صول نصف دييز','laBimolJawab':'لا بيمول','laHafBimolJawab':'لا نصف بيمول',
+      'laJawab':'لا','laHafDiazJawab':'لا نصف دييز','siBimolJawab':'سي بيمول',
+      'siHafBimolJawab':'سي نصف بيمول','siJawab':'سي','doHafBimolJawab':'دو نصف بيمول','doJawab':'دو'
     };
 
     // القاعدة: كل وتر يستوعب 9 أرباع (دستان 0 إلى 4.5) ثم ينتقل للوتر التالي
@@ -3962,8 +3978,9 @@ if (westernGuideBtn && westernGuideModal) {
       ['رى','رى نصف دييز','مي بيمول','مي نصف بيمول','مي','فا نصف بيمول','فا','فا نصف دييز','فا دييز','صول نصف بيمول'],
       // وتر صول (3): 0-9 أرباع
       ['صول','صول نصف دييز','لا بيمول','لا نصف بيمول','لا','لا نصف دييز','سي بيمول','سي نصف بيمول','سي','دو نصف بيمول'],
-      // وتر دو (4): 0-16 ربع
-      ['دو','دو نصف دييز','رى بيمول','رى نصف بيمول','رى','رى نصف دييز','مي بيمول','مي نصف بيمول','مي','فا نصف بيمول','فا','فا نصف دييز','فا دييز','صول نصف بيمول','صول','صول نصف دييز','لا بيمول']
+      // وتر دو (4): 0-26 ربع (لغاية فريت 13)
+      ['دو','دو نصف دييز','رى بيمول','رى نصف بيمول','رى','رى نصف دييز','مي بيمول','مي نصف بيمول','مي','فا نصف بيمول','فا','فا نصف دييز','فا دييز','صول نصف بيمول','صول','صول نصف دييز','لا بيمول',
+       'لا نصف بيمول','لا','لا نصف دييز','سي بيمول','سي نصف بيمول','سي','دو نصف بيمول','دو','دو نصف دييز','رى بيمول']
     ];
 
     // جدول الاسم الأساسي لكل حرف من الـ 25 — يحدد الحرف الموسيقي الأصلي
@@ -3973,7 +3990,9 @@ if (westernGuideBtn && westernGuideModal) {
       'si':'سي','doHafBimol':'دو','do':'دو','doHafDiaz':'دو',
       'doDiaz':'دو','reHafBimol':'رى','re':'رى','reHafDiaz':'رى',
       'miBimol':'مي','miHafBimol':'مي','mi':'مي','miHafDiaz':'مي',
-      'fa':'فا','faHafDiaz':'فا','faDiaz':'فا','solHafBimol':'صول','solJawab':'صول'
+      'fa':'فا','faHafDiaz':'فا','faDiaz':'فا','solHafBimol':'صول','solJawab':'صول',
+      'solHalfDiazJawab':'صول','laBimolJawab':'لا','laHafBimolJawab':'لا','laJawab':'لا','laHafDiazJawab':'لا',
+      'siBimolJawab':'سي','siHafBimolJawab':'سي','siJawab':'سي','doHafBimolJawab':'دو','doJawab':'دو'
     };
 
     // ===== الأسماء الأساسية السبعة وترتيبها =====
@@ -4189,7 +4208,7 @@ if (westernGuideBtn && westernGuideModal) {
         }
         const effectiveQ = (highlightIdx !== undefined && degIdx === highlightIdx && highlightQuarters !== undefined)
           ? highlightQuarters : effectiveQForDraw;
-        if (effectiveQ < 0 || effectiveQ > 56) return;
+        if (effectiveQ < 0 || effectiveQ > 60) return;
         const { s, q } = getStringFret(effectiveQ);
         const x = quarterToX(q);
         const y = arStringY(s, x);
@@ -4508,7 +4527,10 @@ if (westernGuideBtn && westernGuideModal) {
       const isDesc = arStepIdx >= currentDegrees.length;
       const maqName = maqamSelect.value;
       drawArabicMaqam(HARF_LIST[currentDegrees[0]], MAQAM_INTERVALS[maqName] || [], degIdx, maqName, isDesc, quarters);
-      playArNote(quarters);
+      // تعويض أوكتاف: لو كل السلم يبدأ من أوكتاف مرتفع (الجذر نفسه ٢٤ فأكثر، ما فيه نغمة "منخفضة" بالسلسلة كمرجع)
+      // نظام العينات يحتاج ربع إضافي (٢٤) للحصول على الأوكتاف الصحيح فعلياً
+      const rootIsHighOctave = currentDegrees[0] >= 24;
+      playArNote(rootIsHighOctave ? quarters + 24 : quarters);
       // اهتزاز الوتر المقابل للنغمة
       const { s: strIdx } = getStringFret(quarters);
       if (typeof window.vibrateString === 'function') window.vibrateString(strIdx);
