@@ -1500,7 +1500,7 @@ input[type="radio"] {
       <p>🔹 <strong>فتح قائمة الكوردات:</strong> اضغط زر <strong>"☰ اختر من الدائرة"</strong> فوق العود (بتبويب المقامات الغربية)، ثم اضغط تبويب <strong>"الكوردات"</strong> أعلى القائمة، بدل تبويب "دائرة الرابعات والخامسات".</p>
       <p>🔹 <strong>اختيار نوع السلم:</strong> داخل قائمة الكوردات نفسها، فيه صف أزرار (Major / Minor طبيعي / Minor توافقي / Minor ميلودي) يتيح لك التبديل بين الأنواع الأربعة مباشرة، وتتحدث الكوردات فوراً بدون ما تحتاج تغلق القائمة.</p>
       <p>🔹 <strong>اختيار كورد:</strong> تظهر الكوردات السبعة بدرجاتها (I, ii, iii, IV, V, vi, vii°...)، وباسم كل كورد الكامل (مثل "دو Major" أو "رى Minor"). اضغط على أي كورد لتختاره — تضيء نغماته الثلاث على الزند بالأزرق، وتختفي نغمات السلم العادية مؤقتاً لتوضيح الكورد لوحده.</p>
-      <p>🔹 <strong>تشغيل الكورد كاملاً:</strong> بعد اختيار الكورد، استخدم زر <strong>▶ التشغيل</strong> بالمشغل بالأسفل لسماع النغمات الثلاث تُعزف معاً بصوت مستمر — وتتحول إضاءتها للأخضر أثناء التشغيل. تعمل بقية أزرار المشغل (⏸ إيقاف مؤقت، ⏹ إيقاف) بنفس طريقتها المعتادة.</p>
+      <p>🔹 <strong>تشغيل الكورد كاملاً:</strong> بعد اختيار الكورد، استخدم زر <strong>▶ التشغيل</strong> بالمشغل بالأسفل لسماع النغمات الثلاث تُعزف معاً بصوت العود الحقيقي — بضغطة وحدة تشتغل وتنتهي طبيعياً (بدون إيقاف مؤقت)، وتضيء أثناء التشغيل.</p>
       <p>🔹 <strong>سماع كل نغمة لحالها:</strong> يمكنك أيضاً الضغط على أي نغمة من الثلاث مباشرة (بنفس تقنية النغمة المستمرة) للتأكد من صوتها فرادى، قبل أو بدل سماع الكورد كاملاً معاً.</p>
       <p>🔹 <strong>الرجوع للسلم:</strong> اضغط تبويب "دائرة الرابعات والخامسات" بأعلى القائمة، أو اختر مقاماً جديداً من الدائرة، للرجوع لعرض السلم العادي على الزند.</p>
     </div>
@@ -2298,8 +2298,8 @@ function renderChordHighlight(positions, active){
     const boxW = 64, boxH = 32;
     const rect = el('rect', {
       x: p.x-boxW/2, y: p.y-boxH/2, width:boxW, height:boxH, rx:4,
-      fill: active ? '#1f7a4d' : '#2b6fc9',
-      stroke: active ? '#7fe0a8' : '#1a5fa8',
+      fill: active ? '#d64545' : '#2b6fc9',
+      stroke: active ? '#a82f2f' : '#1a5fa8',
       'stroke-width': active ? 4 : 2,
     });
     rect.style.cursor = 'pointer';
@@ -2324,7 +2324,7 @@ function renderChordHighlight(positions, active){
       const noteFreq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
       window.toggleSustainedNoteOnRect(freshRect, noteFreq,
         (liveRect) => {
-          liveRect.setAttribute('fill', '#1f7a4d'); liveRect.setAttribute('stroke', '#7fe0a8'); liveRect.setAttribute('stroke-width', 4);
+          liveRect.setAttribute('fill', '#d64545'); liveRect.setAttribute('stroke', '#a82f2f'); liveRect.setAttribute('stroke-width', 4);
           if (typeof window.vibrateString === 'function') window.vibrateString(pos.string);
         },
         (liveRect) => { liveRect.setAttribute('fill', '#2b6fc9'); liveRect.setAttribute('stroke', '#1a5fa8'); liveRect.setAttribute('stroke-width', 2); },
@@ -2352,28 +2352,22 @@ function selectChord(ch, btnEl){
 function startChordPlaying(){
   if (!window.selectedChord) return;
   if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote(); // نوقف أي نغمة مفردة شغالة لحالها قبل التشغيل الجماعي
-  chordPlayState = 'playing';
-  playBtn.textContent = '⏸';
-  playBtn.title = 'إيقاف مؤقت';
-  stopBtn.disabled = false;
-  const handles = window.selectedChord.positions.map(pos => {
+  window.selectedChord.positions.forEach(pos => {
     const freq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset);
     if (typeof window.vibrateString === 'function') window.vibrateString(pos.string);
-    return startSustainedNote(freq);
+    if (typeof window.playArNoteByFreq === 'function') window.playArNoteByFreq(freq); // نفس العينات الحقيقية المستخدمة بتشغيل السلم العادي، بضغطة وحدة تشتغل وتخلص طبيعياً
   });
-  currentChordSustain = { handles, positions: window.selectedChord.positions };
   renderChordHighlight(window.selectedChord.positions, true);
+  // نضيء لثانيتين تقريباً (مدة العينة الطبيعية تقريباً) ثم نرجع الإضاءة للوضع العادي، بدون حالة "إيقاف مؤقت" لأن التشغيل بضغطة وحدة بس
+  setTimeout(() => {
+    if (window.selectedChord) renderChordHighlight(window.selectedChord.positions, false);
+  }, 2000);
 }
 
 function pauseChordPlaying(){
-  chordPlayState = 'paused';
+  chordPlayState = 'stopped';
   playBtn.textContent = '▶';
-  playBtn.title = 'استئناف';
-  if (currentChordSustain){
-    currentChordSustain.handles.forEach(h => stopSustainedNote(h));
-    currentChordSustain = null;
-  }
-  if (window.selectedChord) renderChordHighlight(window.selectedChord.positions, false);
+  playBtn.title = 'تشغيل';
 }
 
 function resumeChordPlaying(){
@@ -2905,7 +2899,7 @@ function buildOudStatic(){
       const sg = el('g', { id: 'stringCountBtn', style: 'cursor:pointer;pointer-events:all;' });
       sg.appendChild(el('rect', {
         x: x - handW/2, y: y - handH/2, width: handW, height: handH, rx: handR,
-        fill: '#eaf6fc', stroke: '#2a6a8a', 'stroke-width': '2'
+        fill: '#cbe8f7', stroke: '#1a5fa8', 'stroke-width': '3'
       }));
       const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       t.setAttribute('x', x); t.setAttribute('y', y + 6*handScale);
@@ -2913,7 +2907,7 @@ function buildOudStatic(){
       t.setAttribute('font-family', "'Cairo', Arial, sans-serif");
       t.setAttribute('font-size', String(19 * handScale));
       t.setAttribute('font-weight', '800');
-      t.setAttribute('fill', '#1a5fa8');
+      t.setAttribute('fill', '#0d3c66');
       t.textContent = (OUD.STRING_COUNT === 6 ? '٦ أوتار' : '٥ أوتار');
       sg.appendChild(t);
       sg.addEventListener('click', () => {
@@ -3247,13 +3241,13 @@ function drawOudScale(root, scaleType, direction, stepDirections, currentIndex){
     const correctName = getCorrectNoteName(pc, letterIdx);
 
     const isCurrent = (currentIndex !== undefined && currentIndex === scaleIdx);
-    const fillColor = isCurrent ? '#1f7a4d' : '#2b6fc9';
+    const fillColor = isCurrent ? '#d64545' : '#2b6fc9';
     const textColor = '#fff';
 
     const rectEl = el('rect', {
       x: p.x-boxW/2, y: p.y-boxH/2, width:boxW, height:boxH, rx:4,
       fill: fillColor,
-      stroke: isCurrent ? '#7fe0a8' : '#1a5fa8',
+      stroke: isCurrent ? '#a82f2f' : '#1a5fa8',
       'stroke-width': isCurrent ? 4 : 2,
       'data-scale-idx': scaleIdx
     });
@@ -3266,14 +3260,14 @@ function drawOudScale(root, scaleType, direction, stepDirections, currentIndex){
     // ضغط على المستطيل — صوت مستمر (يبدأ بالضغطة الأولى، يتوقف بالضغطة الثانية) + اهتزاز
     rectEl.style.cursor = 'pointer';
     const origFillForToggle = rectEl.getAttribute('fill');
-    const origStrokeForToggle = isCurrent ? '#7fe0a8' : '#1a5fa8';
+    const origStrokeForToggle = isCurrent ? '#a82f2f' : '#1a5fa8';
     rectEl.addEventListener('click', () => {
       const noteFreq = OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset); // نحسبه هنا (وقت الضغط الفعلي) عشان يعكس آخر دوزان مختار، مو الدوزان وقت رسم السلم
       window.toggleSustainedNoteOnRect(rectEl, noteFreq,
         (liveEl) => { // عند بدء الصوت (liveEl = المستطيل الحالي الفعلي، ممكن يكون تغير لو انعاد رسم السلم)
           const target = liveEl || rectEl;
-          target.setAttribute('fill', '#1f7a4d');
-          target.setAttribute('stroke', '#7fe0a8');
+          target.setAttribute('fill', '#d64545');
+          target.setAttribute('stroke', '#a82f2f');
           if (typeof window.vibrateString === 'function') window.vibrateString(pos.string);
         },
         (liveEl) => { // عند إيقاف الصوت (liveEl = العنصر الحقيقي المضاء حالياً، ممكن يكون تغير لو انعاد رسم السلم)
@@ -3445,8 +3439,8 @@ let currentSustainedNote = null; // {oscillators, masterGain, rectEl}
 
 const SUSTAINED_PARTIALS = [
   { mult: 1,   gain: 1.0,  type: 'triangle' },
-  { mult: 2,   gain: 0.35, type: 'sine' },
-  { mult: 3,   gain: 0.15, type: 'sine' },
+  { mult: 2,   gain: 0.12, type: 'sine' },
+  { mult: 3,   gain: 0.04, type: 'sine' },
 ];
 
 function startSustainedNote(freq){
@@ -3644,8 +3638,8 @@ function nextStep(){
     oudNotesLayer.querySelectorAll('rect').forEach(rect => {
       const idx = parseInt(rect.getAttribute('data-scale-idx'));
       if (idx === scaleIdx) {
-        rect.setAttribute('fill', '#1f7a4d');
-        rect.setAttribute('stroke', '#7fe0a8');
+        rect.setAttribute('fill', '#d64545');
+        rect.setAttribute('stroke', '#a82f2f');
       } else {
         rect.setAttribute('fill', '#2b6fc9');
         rect.setAttribute('stroke', '#fff');
@@ -3656,8 +3650,8 @@ function nextStep(){
     oudNotesLayer.querySelectorAll('rect').forEach(rect => {
       const idx = parseInt(rect.getAttribute('data-scale-idx'));
       if (idx === scaleIdx) {
-        rect.setAttribute('fill', '#1f7a4d');
-        rect.setAttribute('stroke', '#7fe0a8');
+        rect.setAttribute('fill', '#d64545');
+        rect.setAttribute('stroke', '#a82f2f');
       } else {
         rect.setAttribute('fill', '#2b6fc9');
         rect.setAttribute('stroke', '#fff');
@@ -3725,9 +3719,7 @@ function resetPlayer(){
 playBtn.addEventListener('click', () => {
   if(window.isArabicMode) return;
   if (window.chordModeActive && window.selectedChord){
-    if (chordPlayState === 'stopped') startChordPlaying();
-    else if (chordPlayState === 'playing') pauseChordPlaying();
-    else if (chordPlayState === 'paused') resumeChordPlaying();
+    startChordPlaying();
     return;
   }
   window.stopAnySustainedNote();
@@ -4451,13 +4443,13 @@ if (westernGuideBtn && westernGuideModal) {
         const { text, acc } = getDegreeNameAndAcc(degIdx, startPos, effectiveQ, maqamName || '', isHighlighted ? (isDescending || false) : false);
 
         const isCurrent = (highlightIdx !== undefined && highlightIdx === degIdx);
-        const fillColor = isCurrent ? '#1f7a4d' : '#2b6fc9';
+        const fillColor = isCurrent ? '#d64545' : '#2b6fc9';
 
         const rect = document.createElementNS(ns2, 'rect');
         rect.setAttribute('x', x - boxW/2); rect.setAttribute('y', y - boxH/2);
         rect.setAttribute('width', boxW); rect.setAttribute('height', boxH);
         rect.setAttribute('rx', 4); rect.setAttribute('fill', fillColor);
-        rect.setAttribute('stroke', isCurrent ? '#7fe0a8' : '#1a5fa8');
+        rect.setAttribute('stroke', isCurrent ? '#a82f2f' : '#1a5fa8');
         rect.setAttribute('stroke-width', isCurrent ? 3 : 2);
         rect.setAttribute('data-scale-idx', degIdx);
         rect.style.cursor = 'pointer';
@@ -4465,15 +4457,15 @@ if (westernGuideBtn && westernGuideModal) {
 
         // ضغط على المستطيل — نغمة مستمرة (تبدأ بالضغطة الأولى، تتوقف بالضغطة الثانية)
         const origFillAr = fillColor;
-        const origStrokeAr = isCurrent ? '#7fe0a8' : '#1a5fa8';
+        const origStrokeAr = isCurrent ? '#a82f2f' : '#1a5fa8';
         rect.addEventListener('click', () => {
           const arNoteFreq = posToFreq(effectiveQ); // نحسبه هنا (وقت الضغط الفعلي) عشان يعكس آخر دوزان مختار
           const { s: vibStrIdx } = getStringFret(effectiveQ);
           window.toggleSustainedNoteOnRect(rect, arNoteFreq,
             (liveEl) => {
               const target = liveEl || rect;
-              target.setAttribute('fill', '#1f7a4d');
-              target.setAttribute('stroke', '#7fe0a8');
+              target.setAttribute('fill', '#d64545');
+              target.setAttribute('stroke', '#a82f2f');
               if (typeof window.vibrateString === 'function') window.vibrateString(vibStrIdx);
             },
             (liveEl) => {
