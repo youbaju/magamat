@@ -123,8 +123,12 @@ body{ width:100vw; overflow-x:hidden; }
   box-shadow:0 3px 10px rgba(20,20,20,.1);
 }
 /* بوضع اليد اليسرى، زند العود ينعكس فيتغطى الجزء اليمين من الشاشة بالقوائم - فنبدّل مكان الزرين عشان يبقوا دايماً بالجهة اللي ما فيها زند مهم */
-body.hand-left-mode .site-tabs-toggle{ left:auto; right:10px; }
-body.hand-left-mode .c-menu-toggle{ right:auto; left:10px; }
+body.hand-left-mode .site-tabs-toggle{ left:auto !important; right:10px !important; }
+body.hand-left-mode .c-menu-toggle{ right:auto !important; left:10px !important; }
+body.hand-left-mode .menu-toggle{ right:auto !important; left:10px !important; }
+body:not(.hand-left-mode) .site-tabs-toggle{ right:auto !important; left:10px !important; }
+body:not(.hand-left-mode) .c-menu-toggle{ left:auto !important; right:10px !important; }
+body:not(.hand-left-mode) .menu-toggle{ left:auto !important; right:10px !important; }
 /* بوضع اليد اليسرى، القوائم (فصائل المقامات، دائرة الرابعات والخامسات، الكوردات) لازم تنزلق من نفس جهة الزر (اليسار)، مو دايماً من اليمين */
 body.hand-left-mode .panel{ right:auto; left:-280px; box-shadow: 4px 0 16px rgba(0,0,0,0.2); }
 body.hand-left-mode .panel.open{ left:0; }
@@ -877,11 +881,11 @@ flex-shrink: 0;
   svg#shared-oudSvg #langToggleBtn * { pointer-events: auto !important; }
   svg#shared-oudSvg #noteSystemToggleBtn { pointer-events: auto !important; cursor: pointer; }
   svg#shared-oudSvg #noteSystemToggleBtn * { pointer-events: auto !important; }
-  .lang-btn-pulse .lang-btn-rect { animation: langBtnPulse 1.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  .lang-btn-pulse .lang-btn-rect { animation: langBtnPulse 1.4s ease-in-out infinite; }
   @keyframes langBtnPulse {
-    0%   { stroke: #3ab4e8; }
-    50%  { stroke: #a82f2f; filter: drop-shadow(0 0 6px rgba(168,47,47,.8)); }
-    100% { stroke: #3ab4e8; }
+    0%   { stroke: #3ab4e8; stroke-width: 2; filter: drop-shadow(0 0 0 rgba(168,47,47,0)); }
+    50%  { stroke: #a82f2f; stroke-width: 5; filter: drop-shadow(0 0 14px rgba(168,47,47,.95)); }
+    100% { stroke: #3ab4e8; stroke-width: 2; filter: drop-shadow(0 0 0 rgba(168,47,47,0)); }
   }
 
   /* ===== Modal دليل المقام ===== */
@@ -3314,7 +3318,7 @@ function buildOudStatic(){
         x: x - handW/2, y: y - handH/2, width: handW, height: handH, rx: handR,
         fill: '#eaf6fc', stroke: '#3ab4e8', 'stroke-width': '2'
       }));
-      const numStr = (OUD.STRING_COUNT === 6) ? (window.oudLanguage === 'en' ? '6' : '٦') : (window.oudLanguage === 'en' ? '5' : '٥');
+      const numStr = (OUD.STRING_COUNT === 6) ? '6' : '5';
       const wordStr = (window.oudLanguage === 'en') ? 'Strings' : 'أوتار';
       // الكلمة فوق (أصغر، أزرق)، والرقم تحت (أكبر، أحمر) — يصير الرقم أبرز عنصر بالزر
       const wordEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -3353,7 +3357,8 @@ function buildOudStatic(){
 
     // ===== زر تبديل اللغة (AR/EN) — يمين زر المساعدة، بنفس أبعاده بالضبط، مع وميض جذب انتباه أول ما تفتح الصفحة =====
     function makeLanguageBtn(x, y){
-      const lg = el('g', { id: 'langToggleBtn', style: 'cursor:pointer;pointer-events:all;', class: 'lang-btn-pulse' });
+      const lg = el('g', { id: 'langToggleBtn', style: 'cursor:pointer;pointer-events:all;' });
+      lg.classList.toggle('lang-btn-pulse', !window._langPulseDismissed); // نطبّق الوميض بس لو المستخدم ما تفاعل مع الموقع لسا (علم عالمي ثابت، مو مرتبط بلحظة الإنشاء)
       lg.appendChild(el('rect', {
         x: x - helpBtnW/2, y: y - helpBtnH/2, width: helpBtnW, height: helpBtnH, rx: instBtnR,
         fill: '#eaf6fc', stroke: '#3ab4e8', 'stroke-width': '2', class: 'lang-btn-rect'
@@ -3368,6 +3373,7 @@ function buildOudStatic(){
       t.textContent = (window.oudLanguage === 'en') ? 'EN' : 'AR';
       lg.appendChild(t);
       lg.addEventListener('click', () => {
+        window._langPulseDismissed = true; // يمنع الوميض يرجع يظهر بأي إعادة رسم لاحقة
         lg.classList.remove('lang-btn-pulse'); // نوقف الوميض عند أول تفاعل من المستخدم مع الزر نفسه
         const newLang = (window.oudLanguage === 'en') ? 'ar' : 'en';
         localStorage.setItem('oudLanguagePref', newLang);
@@ -3383,11 +3389,18 @@ function buildOudStatic(){
     const langBtn = makeLanguageBtn(langBtnFinalX, helpY);
     oudControlBtnsLayer.appendChild(langBtn);
     // أي ضغطة بأي مكان بالصفحة (مو بس الزر نفسه) توقف الوميض — "استخدم الموقع" = فهم وجود الزر
-    document.addEventListener('click', function stopLangPulseOnce(e){
-      if (e.target.closest && e.target.closest('#langToggleBtn')) return; // الزر نفسه له معالج منفصل فوق
-      langBtn.classList.remove('lang-btn-pulse');
-      document.removeEventListener('click', stopLangPulseOnce);
-    }, { once: true });
+    if (!window._langPulseDismissed) {
+      document.addEventListener('click', function stopLangPulseOnce(e){
+        if (e.target.closest && e.target.closest('#langToggleBtn')) return; // الزر نفسه له معالج منفصل فوق
+        // نستثني بقية أزرار التحكم بنفس الصف (يد، عدد أوتار، مساعدة...) — الضغط عليها للتجربة
+        // ما يفترض يُحسب "تفاعل ينهي الوميض للأبد"، لأنها ما توديك لمكان ثاني ولا تفتح شي
+        if (e.target.closest && e.target.closest('#oudControlBtnsLayer')) return;
+        window._langPulseDismissed = true;
+        const currentLangBtn = document.getElementById('langToggleBtn'); // نجيب العنصر الحالي فعلياً، مو المرجع القديم (يحتمل يكون انمسح بإعادة رسم لاحقة)
+        if (currentLangBtn) currentLangBtn.classList.remove('lang-btn-pulse');
+        document.removeEventListener('click', stopLangPulseOnce, true);
+      }, { once: true, capture: true }); // مرحلة الالتقاط (capture) — تشتغل قبل معالج الزر نفسه، عشان العنصر يضل متصل بالصفحة وقت الفحص (بعض الأزرار تعيد بناء نفسها فوراً بنفس الضغطة)
+    }
 
     // ===== زر تبديل نظام تسمية النغمات (Do/C) — يظهر بس بالإنجليزي + صفحة السلالم الغربية، ملاصق لزر اللغة من الخارج =====
     // نبنيه دايماً لو اللغة إنجليزي (بغض النظر عن التبويب الحالي وقت الرسم)، ونتحكم بإظهاره/إخفاؤه لاحقاً
@@ -3521,22 +3534,12 @@ function buildOudStatic(){
     fill:'#ffffff', stroke:'#3ab4e8', 'stroke-width':'5'
   });
   const btnText = el('text', {
-    x: btnX + btnW/2, y: btnY + btnH/2,
+    x: btnX + btnW/2, y: btnY + btnH/2 + 12,
     'text-anchor':'middle', 'dominant-baseline':'middle',
     'font-family':"'Cairo', 'Segoe UI', Tahoma, sans-serif",
-    'font-size':'36', 'font-weight':'800', fill:'#1b1410'
+    'font-size':'30', 'font-weight':'800', fill:'#1b1410'
   });
-  const contactLines = (window.oudLanguage === 'en') ? ['Contact', 'Us'] : ['تواصل', 'معنا'];
-  const tspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-  tspan1.setAttribute('x', btnX + btnW/2);
-  tspan1.setAttribute('dy', '-0.6em');
-  tspan1.textContent = contactLines[0];
-  const tspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-  tspan2.setAttribute('x', btnX + btnW/2);
-  tspan2.setAttribute('dy', '1.2em');
-  tspan2.textContent = contactLines[1];
-  btnText.appendChild(tspan1);
-  btnText.appendChild(tspan2);
+  btnText.textContent = (window.oudLanguage === 'en') ? 'Contact Us' : 'تواصل معنا';
   contactG.appendChild(btnRect);
   contactG.appendChild(btnText);
   oudFooterGroup.appendChild(contactG);
@@ -3549,24 +3552,13 @@ function buildOudStatic(){
     fill:'#ffffff', stroke:'#3ab4e8', 'stroke-width':'5'
   });
   const ratingText = el('text', {
-    x: ratingBtnX + btnW/2, y: btnY + btnH/2,
+    x: ratingBtnX + btnW/2, y: btnY + btnH/2 + 12,
     'text-anchor':'middle', 'dominant-baseline':'middle',
     'font-family':"'Cairo', 'Segoe UI', Tahoma, sans-serif",
-    'font-weight':'800', fill:'#1b1410'
+    'font-size':'30', 'font-weight':'800', fill:'#1b1410'
   });
   const ratingWord = (window.oudLanguage === 'en') ? 'Rate' : 'تقييم';
-  const rtspan1 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-  rtspan1.setAttribute('x', ratingBtnX + btnW/2);
-  rtspan1.setAttribute('dy', '-0.6em');
-  rtspan1.setAttribute('font-size', '40');
-  rtspan1.textContent = ratingWord;
-  const rtspan2 = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-  rtspan2.setAttribute('x', ratingBtnX + btnW/2);
-  rtspan2.setAttribute('dy', '1.5em');
-  rtspan2.setAttribute('font-size', '36');
-  rtspan2.textContent = '⭐';
-  ratingText.appendChild(rtspan1);
-  ratingText.appendChild(rtspan2);
+  ratingText.textContent = (window.oudLanguage === 'en') ? ('⭐ ' + ratingWord) : (ratingWord + ' ⭐');
   ratingG.appendChild(ratingRect);
   ratingG.appendChild(ratingText);
   oudFooterGroup.appendChild(ratingG);
