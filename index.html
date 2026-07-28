@@ -1410,6 +1410,9 @@ input[type="radio"] {
   }
   .panel.open { right: 0; }
   .panel-title { font-size: 1rem; padding: 16px 12px; }
+  @media (min-width:481px) and (max-width: 1024px) and (orientation:portrait){
+    .panel{ width: 340px; right: -340px; }
+  }
   .options-list li { padding: 8px 0; }
   .right-opt, .left-opt { font-size: 0.9rem; }
   input[type="radio"] { width: 16px; height: 16px; }
