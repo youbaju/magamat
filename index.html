@@ -1600,6 +1600,12 @@ input[type="radio"] {
 <div class="shared-oud-area" id="sharedOudArea">
   <div class="shared-oud-wrapper">
     <button id="micVerifyHtmlBtn" type="button" title="تحقق من عزفي" aria-label="تحقق من عزفي">🎤</button>
+    <div id="micCustomNoticeBackdrop" style="display:none; position:fixed; inset:0; z-index:999998; background:rgba(20,14,8,.55); align-items:center; justify-content:center; padding:20px;">
+      <div id="micCustomNotice" role="alert" style="max-width:min(92vw,440px); background:linear-gradient(180deg,#fffaf0,#fbf1dd); border:2px solid #c9a14a; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.45); padding:22px 26px; text-align:center; font-family:'Cairo',Arial,sans-serif; color:#3d2f18; position:relative; opacity:0; transform:scale(.85); transition:opacity .22s ease, transform .22s ease;">
+        <div id="micCustomNoticeText" style="font-size:18px; font-weight:700; line-height:1.7;"></div>
+        <button id="micCustomNoticeClose" type="button" aria-label="إغلاق" style="position:absolute; top:8px; left:10px; background:none; border:none; color:#8a6d35; font-size:22px; cursor:pointer; line-height:1; padding:4px;">×</button>
+      </div>
+    </div>
     <div class="c-selection-summary" id="cSelectionSummary">
       <div class="scale-buttons">
         <button class="scale-btn active" data-scale="major">Major (طبيعي)</button>
@@ -2817,7 +2823,9 @@ window.isArabicMode = false;
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (e) {
-      alert('محتاجين إذن الوصول للمايكروفون عشان تشتغل ميزة "تحقق من عزفي"');
+      // ما نعرض رسالة مخصصة هنا عمداً — نافذة إذن المتصفح نفسها (اللي طلعت قبل هذا
+      // الرفض) كافية توضح للمستخدم وش صار، وإضافة رسالة ثانية فوقها تصير إزعاج غير ضروري
+      updateMicBtnVisual();
       // نسجّل بـGoogle Analytics حالة رفض إذن المايكروفون — يفيد لو لاحظنا نسبة عالية من
       // الرفض، يعني ناس يحاولون يستخدمون الميزة بس ما توصلهم أو يترددون بمنح الإذن
       if (typeof window.gtag === 'function') window.gtag('event', 'mic_verify_permission_denied');
@@ -2851,6 +2859,51 @@ window.isArabicMode = false;
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
     if (audioCtxMic) { try { audioCtxMic.close(); } catch(e){} audioCtxMic = null; }
     updateMicBtnVisual();
+  }
+
+  // إشعار مخصص داخل الصفحة (بدل alert() الأصلية) — المتصفح يضيف اسم نطاق الموقع تلقائياً
+  // لأي نافذة alert()، وهذا سلوك أمان أساسي بالمتصفح ما نقدر نلغيه أو نتحكم فيه. هذا
+  // الإشعار عنصر HTML عادي مرسوم داخل الصفحة نفسها، فما يظهر فيه أي شي متعلق بالمتصفح.
+  // يظهر كنافذة منبثقة حقيقية بمنتصف الشاشة، فوق خلفية معتمة تغطي كل شيء (أعلى ترتيب
+  // طبقات بالموقع كامل)، بدل ما يكون شريط صغير أعلى الشاشة
+  let micNoticeHideTimer = null;
+  function showMicCustomNotice(message, autoHideMs){
+    const backdrop = document.getElementById('micCustomNoticeBackdrop');
+    const box = document.getElementById('micCustomNotice');
+    const txt = document.getElementById('micCustomNoticeText');
+    if (!backdrop || !box || !txt) { alert(message); return; } // احتياط لو العنصر مفقود لأي سبب
+    txt.textContent = message;
+    if (micNoticeHideTimer) clearTimeout(micNoticeHideTimer);
+    backdrop.style.display = 'flex';
+    // نأجّل شوي عشان نضمن الانتقال الحركي يشتغل (بدل ما يظهر فجأة بدون حركة)
+    requestAnimationFrame(() => {
+      box.style.opacity = '1';
+      box.style.transform = 'scale(1)';
+    });
+    if (autoHideMs) {
+      micNoticeHideTimer = setTimeout(() => hideMicCustomNotice(), autoHideMs);
+    }
+  }
+  function hideMicCustomNotice(){
+    const backdrop = document.getElementById('micCustomNoticeBackdrop');
+    const box = document.getElementById('micCustomNotice');
+    if (!backdrop || !box) return;
+    box.style.opacity = '0';
+    box.style.transform = 'scale(.85)';
+    setTimeout(() => { if (box.style.opacity === '0') backdrop.style.display = 'none'; }, 250);
+  }
+  // نغلق الإشعار كمان لو ضغط المستخدم على الخلفية المعتمة نفسها (خارج صندوق الرسالة)
+  const micNoticeBackdropEl = document.getElementById('micCustomNoticeBackdrop');
+  if (micNoticeBackdropEl) {
+    micNoticeBackdropEl.addEventListener('click', (e) => {
+      if (e.target === micNoticeBackdropEl) { if (micNoticeHideTimer) clearTimeout(micNoticeHideTimer); hideMicCustomNotice(); }
+    });
+  }
+  // العنصر ثابت بالـHTML وموجود مسبقاً وقت تنفيذ هذا السكربت (معرّف بالصفحة قبل هذا
+  // الجزء بكثير)، فنربط زر الإغلاق مباشرة بدون انتظار أي حدث تحميل
+  const micNoticeCloseBtnEl = document.getElementById('micCustomNoticeClose');
+  if (micNoticeCloseBtnEl) {
+    micNoticeCloseBtnEl.addEventListener('click', () => { if (micNoticeHideTimer) clearTimeout(micNoticeHideTimer); hideMicCustomNotice(); });
   }
 
   // منطق المزامنة نفسه، مستقل بدالة لحاله — نستدعيها بشكلين: بشكل سلبي (كل تِك بحلقة
@@ -3008,7 +3061,7 @@ window.isArabicMode = false;
               window.gtag('event', 'mic_verify_complete', { verify_mode: micVerifyMode, note_count: doneSeq.length });
             }
             setTimeout(() => {
-              alert('🎉 أحسنت! أتقنت العزف بالكامل صح من الأول للآخر');
+              showMicCustomNotice('🎉 أحسنت! أتقنت العزف بالكامل صح من الأول للآخر', 3200);
               // لو المستخدم بدّل المقام/السلم/الكورد أثناء الانتظار (قبل ما توصل الرسالة)،
               // مزامنة تلقائية جديدة صارت أصلاً وتظبط الحالة على المحتوى الجديد بشكل صحيح —
               // نتجنب الكتابة فوقها هنا بالكامل
