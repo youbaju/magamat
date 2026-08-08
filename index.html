@@ -286,6 +286,47 @@ body.hand-left-mode .c-circle-drawer.open{ left:0; }
 }
 .shared-oud-wrapper > *{ pointer-events: auto; }
 .shared-oud-wrapper svg{ max-height: 100%; max-width: 100%; }
+#micVerifyHtmlBtn{
+  position: absolute;
+  z-index: 5;
+  border-radius: 12px;
+  background: #eaf6fc;
+  border: 2px solid #3ab4e8;
+  color: #1a5fa8;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  transition: background .15s, border-color .15s;
+}
+#micVerifyHtmlBtn.listening{
+  background: #d64545;
+  border-color: #a82f2f;
+  color: #fff;
+}
+.mic-current-target{
+  fill: #ffe100 !important;
+  stroke: #b38600 !important;
+  stroke-width: 4 !important;
+  animation: micTargetPulse 1s ease-in-out infinite;
+}
+@keyframes micTargetPulse{
+  0%, 100% { filter: drop-shadow(0 0 3px #ffe100); }
+  50% { filter: drop-shadow(0 0 11px #ffe100); }
+}
+/* اسم النغمة يتحول للون غامق وقت ما يصير المربع أصفر مضيء، عشان يضل مقروء بوضوح
+   (كان أبيض ثابت دايماً، وأبيض على أصفر غير واضح) */
+.mic-current-target-text{
+  fill: #1a120c !important;
+}
+/* رمز علامة التحويل (دييز/بيمول/أرباع التون) مرسوم بخطوط/مسارات SVG ملوّنة عبر stroke
+   لا fill — نغطيها هنا صراحة عشان ما تضل بيضاء غير واضحة فوق الخلفية الصفراء */
+.mic-current-target-text line, .mic-current-target-text path{
+  stroke: #1a120c !important;
+}
 @media (max-width:1024px){
   .shared-oud-area{ top: var(--tabs-h-mobile); height: calc(100vh - var(--tabs-h-mobile)); height: calc(100svh - var(--tabs-h-mobile)); height: calc(100dvh - var(--tabs-h-mobile)); padding: 6px 12px; gap: 4px; }
 }
@@ -935,6 +976,8 @@ flex-shrink: 0;
   svg#shared-oudSvg #handBtnRight *, svg#shared-oudSvg #handBtnLeft * { pointer-events: auto !important; }
   svg#shared-oudSvg #handToggleBtn { pointer-events: auto !important; cursor: pointer; }
   svg#shared-oudSvg #handToggleBtn * { pointer-events: auto !important; }
+  svg#shared-oudSvg #micVerifyBtn { pointer-events: auto !important; cursor: pointer; }
+  svg#shared-oudSvg #micVerifyBtn * { pointer-events: auto !important; }
   svg#shared-oudSvg #stringCountBtn { pointer-events: auto !important; cursor: pointer; }
   svg#shared-oudSvg #stringCountBtn * { pointer-events: auto !important; }
   svg#shared-oudSvg #langToggleBtn { pointer-events: auto !important; cursor: pointer; }
@@ -1110,7 +1153,7 @@ flex-shrink: 0;
   }
 
 
-  svg#shared-oudSvg{ width:100%; height:100%; max-width:100%; display:block; margin:0 auto; object-fit:contain; pointer-events:none; }
+  svg#shared-oudSvg{ width:auto; height:auto; max-width:100%; max-height:100%; display:block; margin:0 auto; pointer-events:none; }
   svg#shared-oudSvg *{ pointer-events:none; }
   svg#shared-oudSvg #inst-oud, svg#shared-oudSvg #inst-qanun, svg#shared-oudSvg #inst-violin { pointer-events:auto; cursor:pointer; }
   svg#shared-oudSvg #helpBtn { pointer-events:auto !important; cursor:pointer; }
@@ -1556,6 +1599,7 @@ input[type="radio"] {
 
 <div class="shared-oud-area" id="sharedOudArea">
   <div class="shared-oud-wrapper">
+    <button id="micVerifyHtmlBtn" type="button" title="تحقق من عزفي" aria-label="تحقق من عزفي">🎤</button>
     <div class="c-selection-summary" id="cSelectionSummary">
       <div class="scale-buttons">
         <button class="scale-btn active" data-scale="major">Major (طبيعي)</button>
@@ -1635,6 +1679,7 @@ input[type="radio"] {
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-ar-15')">١٥. تقييم الموقع</li>
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-ar-16')">١٦. تمارين المقامات والسلالم</li>
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-ar-17')">١٧. تثبيت الموقع كتطبيق على جوالك</li>
+        <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-ar-18')">١٨. التحقق من عزفك (باستخدام الميكروفون)</li>
       </ol>
     </div>
 
@@ -1731,7 +1776,7 @@ input[type="radio"] {
     </div>
     <div class="help-section" id="help-sec-ar-12">
       <h3>١٢. زر المساعدة (؟)</h3>
-      <p>علامة الاستفهام الكبيرة "؟" تحت زند العود تفتح لك صفحة الشرح هذي بالضبط — بأي وقت تحتاج فيه مراجعة أي تفصيلة.</p>
+      <p>علامة الاستفهام الكبيرة "؟" تحت زند العود (بجانب زر اللغة) تفتح لك صفحة الشرح هذي بالضبط — بأي وقت تحتاج فيه مراجعة أي تفصيلة.</p>
     </div>
 
     <div class="help-section" id="help-sec-ar-13">
@@ -1749,10 +1794,11 @@ input[type="radio"] {
       <h3>١٤. كوردات السلالم الغربية</h3>
       <p>بالإضافة للسلالم نفسها، يوفر الموقع <strong>الكوردات السبعة</strong> (الدرجات الموسيقية) لكل سلم غربي — تظهر النغمات الثلاث المكوّنة لكل كورد معاً على زند العود، بأقرب وأسهل أوضاع للعزف.</p>
       <p>🔹 <strong>فتح قائمة الكوردات:</strong> اضغط زر <strong>"☰ اختر من الدائرة"</strong> فوق العود (بتبويب المقامات الغربية)، ثم اضغط تبويب <strong>"الكوردات"</strong> أعلى القائمة، بدل تبويب "دائرة الرابعات والخامسات".</p>
-      <p>🔹 <strong>اختيار نوع السلم:</strong> داخل قائمة الكوردات نفسها، فيه صف أزرار (Major / Minor طبيعي / Minor توافقي / Minor ميلودي) يتيح لك التبديل بين الأنواع الأربعة مباشرة، وتتحدث الكوردات فوراً بدون ما تحتاج تغلق القائمة.</p>
+      <p>🔹 <strong>اختيار نوع السلم:</strong> داخل قائمة الكوردات نفسها، يوجد صف أزرار (Major / Minor طبيعي / Minor توافقي / Minor ميلودي) يتيح لك التبديل بين الأنواع الأربعة مباشرة، وتتحدّث الكوردات فوراً دون الحاجة لإغلاق القائمة. إذا كان لديك كورد مختار وقت التبديل، يبقى نفس الكورد (نفس الدرجة، مثلاً V) مختاراً ومعروضاً تلقائياً — لكن محسوباً بصفته الصحيحة (Major/Minor/Diminished...) وفق النوع الجديد، دون الحاجة لاختياره من جديد. ينطبق هذا حتى إن بدّلت النوع من الزر الرئيسي أعلى العود (خارج قائمة الكوردات) وأنت في وضع كورد.</p>
       <p>🔹 <strong>اختيار كورد:</strong> تظهر الكوردات السبعة بدرجاتها (I, ii, iii, IV, V, vi, vii°...)، وباسم كل كورد الكامل (مثل "دو Major" أو "رى Minor"). اضغط على أي كورد لتختاره — يشتغل صوته <strong>فوراً</strong> وتضيء نغماته الثلاث على الزند بالأزرق.</p>
       <p>🔹 <strong>إعادة سماع الكورد:</strong> استخدم زر <strong>▶ التشغيل</strong> بالمشغل بالأسفل لإعادة سماع نفس الكورد وقت ما تحب.</p>
       <p>🔹 <strong>سماع كل نغمة لحالها:</strong> يمكنك أيضاً الضغط على أي نغمة من الثلاث مباشرة (بنفس تقنية النغمة المستمرة) للتأكد من صوتها فرادى، قبل أو بدل سماع الكورد كاملاً معاً.</p>
+      <p>🔹 <strong>التحقق من عزف الكورد بالميكروفون:</strong> زر 🎤 أعلى الزند يعمل مع الكوردات أيضاً — يتحقق من عزفك للنغمات الثلاث واحدةً تلو الأخرى بترتيب تصاعدي حسب التردد الفعلي (من الأقل صوتاً إلى الأعلى، بغض النظر عن كونها أساساً أو ثالثة أو خامسة نظرياً). التفاصيل الكاملة في قسم "التحقق من عزفك" أدناه.</p>
       <p>🔹 <strong>الرجوع للسلم:</strong> اضغط تبويب "دائرة الرابعات والخامسات" بأعلى القائمة، أو اختر مقاماً جديداً من الدائرة، للرجوع لعرض السلم العادي على الزند.</p>
     </div>
 
@@ -1795,6 +1841,32 @@ input[type="radio"] {
       <p>🔹 <strong>ملاحظة بخصوص العمل بدون إنترنت:</strong> بعد أول زيارة وتشغيل، الأساسيات (زند العود، النغمات الفردية، المقامات اللي شغّلتها قبل) تشتغل حتى بدون نت. على أندرويد هذا يكون ثابت ومستقر، أما على آيفون فممكن يكون أقل ثباتاً أحياناً (قيد من نظام Safari نفسه، مو خلل بالموقع).</p>
     </div>
 
+    <div class="help-section" id="help-sec-ar-18">
+      <h3>١٨. التحقق من عزفك (باستخدام الميكروفون)</h3>
+      <p>ميزة تتيح للموقع "الاستماع" إليك أثناء عزفك على عودك الحقيقي، والتحقق تلقائياً مما إذا كنت قد عزفت المقام أو السلم أو التمرين أو الكورد المعروض على الزند بشكل صحيح — نغمةً نغمة.</p>
+      <p>🔹 <strong>القاعدة العامة لعمل الميكروفون:</strong> بمجرد ضغط 🎤، يظل الميكروفون في وضع الاستماع بشكل مستمر — حتى لو بدّلت المقام أو السلم أو الكورد، وحتى بعد إتمام التسلسل بنجاح — ولا يتوقف إلا بإحدى حالتين: ضغط زر ▶ (التشغيل العادي)، أو ضغط 🎤 نفسه مرة أخرى لإيقافه يدوياً.</p>
+      <p>🔹 <strong>ما يقتصر على العود فقط:</strong> بما أن الميزة تعتمد على قياس التردد الصادر من المايكروفون، يمكنك تجربتها بأي آلة موسيقية أخرى تملكها (بيانو، كمان، غيتار...)، بل تستطيع عمل الاختبار بصوتك أيضاً (بدندنة أو غناء النغمة المطلوبة) بدل العزف على آلة — طالما أن النغمة الصادرة مطابقة للتردد المطلوب، ستُقبل بنفس الطريقة تماماً.</p>
+      <p>🔹 <strong>موقع الزر:</strong> زر 🎤 يقع فوق الزند، بين فريت ٠ وفريت ١ (بمحاذاة صف زر اختيار اليد وزر عدد الأوتار) — وهو متاح في جميع الأوضاع: المقامات العربية، السلالم الغربية، التمارين، وكذلك الكوردات.</p>
+      <p>🔹 <strong>قبل البدء:</strong></p>
+      <p>١. اضبط "الدوزان" من القائمة أسفل المشغّل بما يطابق دوزان عودك الحقيقي (عالمي، ناقص نصف تون، ناقص تون كامل، أو ناقص تون ونصف) — وهذا أمر بالغ الأهمية، إذ يعتمد الموقع في مقارنته على ترددات محسوبة بناءً على هذا الإعداد تحديداً.<br>
+      ٢. استمع إلى المقام أو السلم أو التمرين أو الكورد المطلوب عبر زر ▶ العادي، بقدر ما تحتاج من مرات، قبل الشروع في التحقق.</p>
+      <p>🔹 <strong>طريقة الاستخدام:</strong></p>
+      <p>١. اضغط 🎤 — في أول استخدام سيطلب منك المتصفح الإذن بالوصول إلى الميكروفون، فوافق عليه.<br>
+      ٢. يتحول الزر إلى دائرة حمراء <span style="display:inline-block; width:13px; height:13px; border-radius:50%; background:#d64545; vertical-align:middle;"></span> تدل على أنه يستمع إليك فعلياً في تلك اللحظة.<br>
+      ٣. اعزف الدرجات بالترتيب على عودك الحقيقي، درجةً درجة (وفي الكوردات: من أقل نغمة تردداً إلى أعلاها صوتياً، بغض النظر كونها أساس أو ثالثة أو خامسة نظرياً).<br>
+      ٤. تضيء الدرجة المطلوب عزفها حالياً بمربع أصفر نابض بكامله (مع ظهور اسم النغمة بلون داكن فوقه)، لتعرف بدقة أين وصلت.<br>
+      ٥. كل نغمة صحيحة تتلوّن تلقائياً بالأخضر الداكن، وينتقل التظليل الأصفر إلى الدرجة التالية.<br>
+      ٦. إن أخطأت في نغمة، تتلوّن بالأحمر للحظة، ثم يعود التظليل الأصفر إلى النغمة ذاتها فقط لإعادة المحاولة عليها — أما النغمات التي عزفتها بشكل صحيح قبلها فتبقى خضراء دون أن تتأثر، ولا يعود تقدّمك إلى بداية السلّم.<br>
+      ٧. إذا أتممت التسلسل كاملاً وبشكل صحيح من البداية إلى النهاية، ستصلك رسالة تهنئة، ثم تعود الدرجة الأولى للإضاءة الصفراء من جديد، والاستماع يستمر دون توقف — جاهز فوراً لمحاولة أخرى.</p>
+      <p>🔹 <strong>تجربة أكثر من مقام أو سلم دون توقف:</strong> يظل الميكروفون يعمل حتى إن بدّلت المقام أو المحطّ أو السلم أو اخترت كورداً جديداً وأنت لا تزال في وضع الاستماع — يكتشف الموقع التغيير تلقائياً ويبدأ التحقق من المحتوى الجديد فوراً، دون الحاجة لضغط 🎤 من جديد لكل مقام تجربه.</p>
+      <p>🔹 <strong>ملاحظة:</strong> إذا ضغطت زر ▶ (التشغيل العادي) وأنت في وضع الاستماع، يتوقف التحقق تلقائياً — لأنك على الأغلب ترغب في سماع المقام الجديد أولاً قبل اختباره، ولتفادي دخول صوت التشغيل نفسه عبر الميكروفون. اضغط 🎤 من جديد متى كنت جاهزاً للاختبار.</p>
+      <p>🔹 <strong>لإيقاف المحاولة يدوياً</strong> في أي وقت، اضغط 🎤 (أو <span style="display:inline-block; width:13px; height:13px; border-radius:50%; background:#d64545; vertical-align:middle;"></span>) مرة أخرى.</p>
+      <p>🔹 <strong>نصائح لتحقيق أفضل دقة:</strong></p>
+      <p>- اعزف بصوت واضح ومستمر (دع الوتر يرنّ ثانية واحدة على الأقل)، لا بنقرة سريعة خفيفة.<br>
+      - كن قريباً نسبياً من ميكروفون جهازك، وفي مكان هادئ قدر الإمكان.<br>
+      - تأكد من ضبط الدوزان بشكل صحيح قبل البدء — فهذا أكثر الأسباب شيوعاً لعدم التطابق.</p>
+    </div>
+
     </div>
     </div>
 
@@ -1826,6 +1898,7 @@ input[type="radio"] {
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-en-15')">15. Rating the Website</li>
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-en-16')">16. Maqam & Scale Exercises</li>
         <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-en-17')">17. Installing the Site as an App on Your Phone</li>
+        <li class="help-toc-item" onclick="scrollToHelpSection('help-sec-en-18')">18. Verify Your Playing (via Microphone)</li>
       </ol>
     </div>
 
@@ -1910,7 +1983,7 @@ input[type="radio"] {
 
     <div class="help-section" id="help-sec-en-12">
       <h3>12. Help Button (?)</h3>
-      <p>The large question mark "؟" below the fretboard opens this exact guide page — anytime you need to review any detail.</p>
+      <p>The large question mark "؟" below the fretboard (next to the language button) opens this exact guide page — anytime you need to review any detail.</p>
     </div>
 
     <div class="help-section" id="help-sec-en-13">
@@ -1972,6 +2045,32 @@ input[type="radio"] {
       4. Tap "Add" at the top right of the screen.</p>
       <p>🔹 <strong>After installing:</strong> You can open the site from the new icon on your home screen like any app, without needing to open the browser or type the address every time.</p>
       <p>🔹 <strong>Note on offline use:</strong> After the first visit and use, the essentials (the oud fretboard, individual notes, and maqamat you've already played) work even without internet. On Android this is stable and reliable; on iPhone it can sometimes be less consistent (a limitation of Safari itself, not a flaw in the site).</p>
+    </div>
+
+    <div class="help-section" id="help-sec-en-18">
+      <h3>18. Verify Your Playing (via Microphone)</h3>
+      <p>A feature that lets the site "listen" to you as you play your real oud, and automatically checks whether you played the displayed maqam, scale, exercise, or chord correctly — note by note.</p>
+      <p>🔹 <strong>General rule for how the microphone works:</strong> once you tap 🎤, it stays continuously in listening mode — even if you switch the maqam, scale, or chord, and even after successfully completing a sequence — and it only stops in one of two cases: tapping the ▶ (normal play) button, or tapping 🎤 itself again to stop it manually.</p>
+      <p>🔹 <strong>Not limited to the oud:</strong> since the feature works by measuring the pitch picked up by your microphone, you can try it with any other instrument you own (piano, violin, guitar...), or you can even take the test using your own voice (humming or singing the target note) instead of playing an instrument — as long as the pitch you produce matches the target frequency, it will be accepted the exact same way.</p>
+      <p>🔹 <strong>Where to find it:</strong> the 🎤 button sits above the fretboard, between fret 0 and fret 1 (aligned with the hand-orientation and string-count buttons' row) — available in every mode: Arabic maqamat, Western scales, exercises, and chords too.</p>
+      <p>🔹 <strong>Before you start:</strong></p>
+      <p>1. Set the "Tuning" from the menu below the player to match your real oud's tuning (Standard, Half-step down, Full-step down, or Step-and-a-half down) — this matters a lot, since the site compares against frequencies calculated specifically from this setting.<br>
+      2. Listen to the target maqam, scale, exercise, or chord using the normal ▶ button, as many times as you need, before trying the verification.</p>
+      <p>🔹 <strong>How to use it:</strong></p>
+      <p>1. Tap 🎤 — the first time, the browser will ask for microphone access; allow it.<br>
+      2. The button turns into a red circle <span style="display:inline-block; width:13px; height:13px; border-radius:50%; background:#d64545; vertical-align:middle;"></span> indicating it's actively listening.<br>
+      3. Play the notes in order, one at a time (for chords: from the lowest-pitched note up to the highest, regardless of whether it's the root, third, or fifth).<br>
+      4. The note you're currently expected to play lights up as a full glowing <strong>yellow</strong> box (with its name shown in a dark color on top), so you know exactly where you are.<br>
+      5. Each correct note automatically turns <strong>dark green</strong>, and the yellow highlight moves to the next note.<br>
+      6. If you play a wrong note, it flashes <strong>red</strong> briefly, then the yellow highlight returns to that same note only, so you can retry it — notes you already played correctly before it stay green and are unaffected, and your progress does not reset to the beginning.<br>
+      7. If you complete the entire sequence correctly from start to finish, you'll get a congratulatory message, then the first note lights up yellow again and listening continues uninterrupted — ready for another attempt right away.</p>
+      <p>🔹 <strong>Try multiple maqamat or scales without stopping:</strong> the microphone stays active even if you switch the maqam, root, scale, or select a new chord while listening — it automatically detects the change and starts checking the new content right away, no need to tap 🎤 again for every new maqam you try.</p>
+      <p>🔹 <strong>Note:</strong> if you tap the ▶ (normal play) button while listening, verification stops automatically — since you likely want to hear the new maqam first before testing it, and to avoid the playback sound itself leaking into the microphone. Tap 🎤 again when you're ready to test.</p>
+      <p>🔹 <strong>To stop the attempt manually</strong> at any time, tap 🎤 (or <span style="display:inline-block; width:13px; height:13px; border-radius:50%; background:#d64545; vertical-align:middle;"></span>) again.</p>
+      <p>🔹 <strong>Tips for best accuracy:</strong></p>
+      <p>- Play with a clear, sustained sound (let the note ring for at least a second), not a quick light pluck.<br>
+      - Stay reasonably close to your device's microphone, in as quiet a place as possible.<br>
+      - Make sure the tuning is set correctly before starting — this is the most common reason for mismatches.</p>
     </div>
 
     </div>
@@ -2342,7 +2441,7 @@ window.isArabicMode = false;
       buttons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const targetId = btn.dataset.target;
-      sessionStorage.setItem('oudActiveTab', targetId);
+      localStorage.setItem('oudActiveTab', targetId);
       // إيقاف الأصوات قبل تغيير التبويب
       if (typeof window.stopAllOudPlayback === 'function') window.stopAllOudPlayback();
       if (typeof window.exStopPlayback === 'function') window.exStopPlayback(); // طبقة أمان إضافية خاصة بتمرين المقام
@@ -2362,7 +2461,7 @@ window.isArabicMode = false;
       showPage(targetId);
       // إعادة ضبط شاملة للافتراضي عند كل تبديل تبويب (بدون تذكّر آخر اختيار)
       if (targetId === 'page-maqamat') {
-        sessionStorage.removeItem('oudArabicSelection');
+        localStorage.removeItem('oudArabicSelection');
         if (typeof window.updateMaqam === 'function') {
           window.updateMaqam('الراست');
           document.querySelectorAll('input[name="maqam"]').forEach(r => { r.checked = (r.value === 'الراست'); });
@@ -2377,13 +2476,613 @@ window.isArabicMode = false;
   });
 
   // نقرأ آخر تبويب كان مفتوح لهذي الجلسة (يبقى محفوظ حتى بعد تحديث الصفحة)، أو نستخدم الافتراضي (المقامات العربية) لجلسة جديدة
-  const savedTab = sessionStorage.getItem('oudActiveTab') || 'page-maqamat';
+  const savedTab = localStorage.getItem('oudActiveTab') || 'page-maqamat';
   showPage(savedTab);
   buttons.forEach(b => b.classList.toggle('active', b.dataset.target === savedTab));
   // تحديث نص الزر ليعكس الصفحة المحفوظة/الافتراضية
   const defaultBtn = document.querySelector(`.site-tab-btn[data-target="${savedTab}"]`);
   if(defaultBtn && currentPageLabel) currentPageLabel.textContent = defaultBtn.querySelector('.tab-title').textContent;
 
+})();
+</script>
+
+<!-- ===== ميزة "تحقق من عزفي" — تحليل صوت المستخدم عبر المايكروفون ومقارنته بتسلسل النغمات المعروض ===== -->
+<script>
+(function(){
+  let audioCtxMic = null;
+  let analyserNode = null;
+  let micStream = null;
+  let rafId = null;
+  let verifyState = 'idle'; // idle | listening
+  let currentNoteIndex = 0;
+  let expectedSequence = []; // [{freq, rect}]
+  let micBtnRect = null; // احتفظنا بالإعلان فقط لتفادي أي مرجع قديم، غير مستخدم فعلياً بعد التحويل لزر HTML
+  let micBtnText = null;
+  let lastGoodTime = 0;
+  let lastBadTime = 0;
+  let lastSequenceSignature = ''; // بصمة نصية بسيطة للنغمات المعروضة حالياً (نغيّرها لو تغيّر المقام/السلم/الكورد وأنت لسا بوضع الاستماع)
+  let micSettleUntil = 0; // بعد أي إعادة مزامنة تلقائية، نتجاهل القراءات لفترة قصيرة عشان أي صدى صوت يهدأ
+
+  // نطاق تسامح "صحيح" — قيمة صغيرة جداً وموحّدة لكل الأوضاع (عربي وغربي وكورد)، لا يمكن
+  // تمييزها بالأذن (أقل بكثير من أصغر مسافة موسيقية موجودة أصلاً، وهي ربع التون = ٥٠ سنت
+  // بالمقامات العربية) — نتجنب أي نطاق واسع يسمح بقبول نغمة مخطئة فعلياً على إنها صحيحة
+  function getCentsMatchThreshold(){
+    return 15;
+  }
+  const CENTS_WRONG = 180;  // فوق هذا يعتبر خطأ واضح (مو بس تردد غير واضح/ضجيج) — وسّعناه بنفس النسبة تقريباً
+  const HOLD_MS = 60;       // المدة اللي لازم النغمة تنضبط فيها متواصلة قبل ما تُحتسب صحيحة — قللناها (كانت 180)
+                             // لأن صوت العود الحقيقي يتذبذب ويخفت تدريجياً بعد النقرة، عكس نغمة إلكترونية ثابتة
+  const HOLD_WRONG_MS = 200; // نفس فكرة الثبات، بس لتأكيد الخطأ — يمنع قراءة غلط عابرة وحدة (أثناء انتقال
+                              // الإصبع بين النغمات مثلاً) من تصفير كل التقدّم فوراً
+
+  function freqToCents(f1, f2){ return 1200 * Math.log2(f1 / f2); }
+
+  // نفس فكرة freqToCents، بس "تطوي" فرق الأوكتافات لأقرب مسافة ممكنة (0-600 سنت) —
+  // يحل مشاكل خطأ الأوكتاف بخوارزمية الكشف (شائعة مع النغمات الرنّانة زي الأوتار المفتوحة،
+  // مثال: عزف "الرى" العادي يُكتشف أحياناً كـ"جواب الرى" بسبب توافقياته القوية) بدون
+  // التأثير على دقة التمييز بين نغمات مختلفة فعلياً (دو عن رى يبقى مرفوض زي ما هو)
+  function foldedCentsDiff(f1, f2){
+    const raw = freqToCents(f1, f2);
+    let folded = ((raw % 1200) + 1200) % 1200;
+    if (folded > 600) folded = 1200 - folded;
+    return folded;
+  }
+
+  // خوارزمية الارتباط الذاتي (Autocorrelation) لاستخراج التردد الأساسي من إشارة صوتية خام
+  // خوارزمية YIN لكشف التردد الأساسي — بديل كامل للطريقة السابقة (الارتباط الذاتي البسيط).
+  // السبب: الطريقة السابقة كانت تعاني من "خطأ الأوكتاف" بشكل متكرر مع صوت آلة حقيقي غني
+  // بالتوافقيات (زي العود)، حتى بعد محاولات تعديل حدود التصحيح يدوياً. خوارزمية YIN تحل
+  // هذي المشكلة بنيوياً (مو بالتخمين على حدود نسبية) عن طريق "دالة الفرق التراكمية المُطبَّعة" —
+  // بمعنى مبسّط: تدور على أول فترة زمنية "تشبه نفسها بقوة" بدل أقوى فترة تشبه نفسها، وهذا
+  // يمنع القفز لمضاعفات الفترة الصحيحة (أخطاء الأوكتاف) من الأساس.
+  function autoCorrelate(buffer, sampleRate){
+    const SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) rms += buffer[i]*buffer[i];
+    rms = Math.sqrt(rms/SIZE);
+    if (rms < 0.012) return -1; // صمت أو صوت ضعيف جداً — نتجاهله
+
+    const halfSize = Math.floor(SIZE / 2);
+    const minTau = Math.max(2, Math.floor(sampleRate / 2000)); // يقابل ٢٠٠٠ هرتز (أعلى حد منطقي لتردد العود)
+    const maxTau = Math.min(halfSize - 1, Math.ceil(sampleRate / 60)); // يقابل ٦٠ هرتز (أدنى حد منطقي)
+    if (maxTau <= minTau) return -1;
+
+    // خطوة ١: دالة الفرق (Difference Function) — لكل فترة زمنية مرشّحة، نقيس "مدى اختلاف"
+    // الإشارة عن نفسها لو انزاحت بهذي الفترة (صفر = تطابق تام، النغمة الحقيقية تكون قريبة من صفر)
+    const d = new Float64Array(maxTau + 1);
+    for (let tau = minTau; tau <= maxTau; tau++) {
+      let sum = 0;
+      for (let i = 0; i < halfSize; i++) {
+        const delta = buffer[i] - buffer[i + tau];
+        sum += delta * delta;
+      }
+      d[tau] = sum;
+    }
+
+    // خطوة ٢: التطبيع التراكمي — هذي الخطوة تحديداً هي اللي تمنع خطأ الأوكتاف بنيوياً
+    const dPrime = new Float64Array(maxTau + 1);
+    dPrime[minTau] = 1;
+    let runningSum = 0;
+    for (let tau = minTau; tau <= maxTau; tau++) {
+      runningSum += d[tau];
+      dPrime[tau] = d[tau] / ((runningSum / (tau - minTau + 1)) || 1);
+    }
+
+    // خطوة ٣: أول فترة تنزل تحت حد معين (مو أقوى فترة إطلاقاً) — هذا يضمن اختيار أقصر
+    // فترة "تشبه نفسها بما يكفي"، يعني النغمة الأساسية الحقيقية، مو مضاعفاتها
+    const YIN_THRESHOLD = 0.15;
+    let tauEstimate = -1;
+    for (let tau = minTau + 1; tau < maxTau; tau++) {
+      if (dPrime[tau] < YIN_THRESHOLD) {
+        while (tau + 1 <= maxTau && dPrime[tau + 1] < dPrime[tau]) tau++; // ننزل لأقرب قاع محلي
+        tauEstimate = tau;
+        break;
+      }
+    }
+    if (tauEstimate === -1) return -1; // ما فيه نغمة واضحة (صمت/ضجيج بحت)
+
+    // تحسين دقة الموضع (Parabolic interpolation)
+    let betterTau = tauEstimate;
+    if (tauEstimate > minTau && tauEstimate < maxTau) {
+      const x1 = dPrime[tauEstimate-1], x2 = dPrime[tauEstimate], x3 = dPrime[tauEstimate+1];
+      const a = (x1 + x3 - 2*x2)/2, b = (x3 - x1)/2;
+      if (a) betterTau = tauEstimate - b/(2*a);
+    }
+
+    const freq = sampleRate / betterTau;
+    return (freq > 60 && freq < 2000) ? freq : -1; // نطاق منطقي لترددات العود
+  }
+
+  // الحاوية الفعلية اللي فيها النغمات المعروضة حالياً: oudNotesLayer بوضع المقام/السلم
+  // العادي، أو chordHighlightLayer وقت ما يكون فيه كورد مختار (chordModeActive)
+  function getActiveNotesLayerId(){
+    return window.chordModeActive ? 'chordHighlightLayer' : 'oudNotesLayer';
+  }
+
+  // نقرأ التسلسل الحالي المعروض على الزند مباشرة من الـDOM (يشتغل بنفس الطريقة
+  // للمقام العربي والسلم الغربي والتمرين والكورد، لأنهم كلهم يرسمون بنفس نمط data-scale-idx/data-freq)
+  function getExpectedSequence(){
+    const layer = document.getElementById(getActiveNotesLayerId());
+    if (!layer) return [];
+    const rects = Array.from(layer.querySelectorAll('rect[data-scale-idx][data-freq]'));
+    rects.sort((a,b) => Number(a.getAttribute('data-scale-idx')) - Number(b.getAttribute('data-scale-idx')));
+    const seen = new Set();
+    const seq = [];
+    rects.forEach(r => {
+      const idx = r.getAttribute('data-scale-idx');
+      if (seen.has(idx)) return;
+      seen.add(idx);
+      const f = parseFloat(r.getAttribute('data-freq'));
+      if (!isNaN(f) && f > 0) seq.push({ freq: f, rect: r });
+    });
+    return seq;
+  }
+
+  // بصمة نصية بسيطة تمثّل "شكل" التسلسل المعروض حالياً (الطبقة + الترددات) — نقارنها كل
+  // إطار وقت الاستماع عشان نكتشف تلقائياً لو المستخدم بدّل المقام/الحرف/السلم/الكورد
+  function sequenceSignature(seq){
+    return getActiveNotesLayerId() + '|' + seq.map(it => it.freq.toFixed(1)).join(',');
+  }
+
+  // لو انعاد رسم الزند لأي سبب أثناء التحقق (يحصل أحياناً مع بعض المقامات)، مرجع rect
+  // القديم المخزّن بـexpectedSequence يصير "ميت" (منفصل عن الشاشة) — نطلع المستطيل الحقيقي
+  // المعروض حالياً بنفس رقم الدرجة، ونستخدمه دايماً بدل المرجع القديم، عشان اللون يثبت فعلياً
+  function getLiveRect(rect){
+    if (!rect || !rect.isConnected) {
+      const idxAttr = rect && rect.getAttribute ? rect.getAttribute('data-scale-idx') : null;
+      if (idxAttr !== null) {
+        const fresh = document.querySelector(`#${getActiveNotesLayerId()} rect[data-scale-idx="${idxAttr}"]`);
+        if (fresh) return fresh;
+      }
+    }
+    return rect;
+  }
+
+  function markNoteResult(rect, isCorrect){
+    rect = getLiveRect(rect);
+    if (!rect) return;
+    // نشيل تظليل "الهدف الحالي" الأصفر فوراً — لازم قبل ما نلوّن، لأنه CSS بـ!important
+    // وكان يطغى على لون النجاح/الخطأ (setAttribute) لين ما ينشال الكلاس، وهذا سبب بقاء
+    // آخر نغمة بالمقام صفراء دايماً (ما فيه نغمة بعدها تستدعي highlightCurrentTarget لتشيله)
+    rect.classList.remove('mic-current-target');
+    setCurrentTargetTextClass(rect.getAttribute('data-scale-idx'), false);
+    const fillColor = isCorrect ? '#1B7A3D' : '#c0392b';
+    const strokeColor = isCorrect ? '#0d5225' : '#7a231b';
+    rect.setAttribute('fill', fillColor);
+    rect.setAttribute('stroke', strokeColor);
+    // نسجّل اللون الصحيح كـ"اللون الأصلي" لهذي النغمة، عشان لو المستخدم ضغط عليها بعدين
+    // يسمعها (ميزة الموقع العادية)، ترجع لنفس لون النجاح/الخطأ بعد ما يخلص الصوت، مو تنقلب
+    // زرقاء عادية — الموقع أصلاً فيه آلية `_origFill` لهذا الغرض، بس محد كان يعبّيها قبل كذا
+    rect._origFill = fillColor;
+    rect._origStroke = strokeColor;
+    clearResultMarkFor(rect); // نشيل أي علامة قديمة على نفس النغمة قبل ما نضيف الجديدة (تفادي تراكم)
+    // نضيف رمز ✓/✗ بزاوية المربع (مو بنص المربع، عشان ما يتراكب مع اسم النغمة المكتوب هناك أصلاً)
+    // فوق دائرة خلفية صغيرة تخلي الرمز واضح بغض النظر عن لون خلفية المربع نفسه
+    const ns = 'http://www.w3.org/2000/svg';
+    const boxX = parseFloat(rect.getAttribute('x'));
+    const boxY = parseFloat(rect.getAttribute('y'));
+    const boxW = parseFloat(rect.getAttribute('width'));
+    const cx = boxX + boxW - 4;
+    const cy = boxY - 4;
+
+    const bg = document.createElementNS(ns, 'circle');
+    bg.setAttribute('cx', cx); bg.setAttribute('cy', cy); bg.setAttribute('r', 15);
+    bg.setAttribute('fill', isCorrect ? '#1B7A3D' : '#c0392b');
+    bg.setAttribute('stroke', '#ffffff'); bg.setAttribute('stroke-width', '2.5');
+    bg.setAttribute('class', 'mic-result-mark');
+    bg.setAttribute('pointer-events', 'none');
+    rect.parentNode.appendChild(bg);
+
+    const t = document.createElementNS(ns, 'text');
+    t.setAttribute('x', cx); t.setAttribute('y', cy + 7);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '20');
+    t.setAttribute('font-weight', 'bold');
+    t.setAttribute('fill', '#ffffff');
+    t.setAttribute('class', 'mic-result-mark');
+    t.setAttribute('pointer-events', 'none');
+    t.textContent = isCorrect ? '✓' : '✗';
+    rect.parentNode.appendChild(t);
+
+    rect._micMarkEls = [bg, t]; // نخزن مرجع العلامتين على نفس عنصر النغمة، عشان نقدر نشيلهم بدقة لاحقاً بدون ما نأثر على علامات نغمات ثانية
+  }
+
+  // يشيل علامة الصح/الخطأ الخاصة بنغمة وحدة بس (مو كل العلامات) — يُستخدم لما المستخدم
+  // يعيد المحاولة على نفس النغمة بعد خطأ، بدون ما يمسح تقدّمه بالنغمات الصحيحة قبلها
+  function clearResultMarkFor(rect){
+    if (rect && rect._micMarkEls) {
+      rect._micMarkEls.forEach(el => el.remove());
+      rect._micMarkEls = null;
+    }
+  }
+
+  function clearResultMarks(){
+    document.querySelectorAll(`#${getActiveNotesLayerId()} .mic-result-mark`).forEach(el => el.remove());
+  }
+
+  function resetAllNotesVisual(){
+    expectedSequence.forEach(item => {
+      item.rect = getLiveRect(item.rect);
+      item.rect.setAttribute('fill', '#2b6fc9');
+      item.rect.setAttribute('stroke', '#1a5fa8');
+      item.rect.classList.remove('mic-current-target');
+      setCurrentTargetTextClass(item.rect.getAttribute('data-scale-idx'), false);
+      item.rect._origFill = null;
+      item.rect._origStroke = null;
+    });
+    clearResultMarks();
+  }
+
+  function updateMicBtnVisual(){
+    const btn = document.getElementById('micVerifyHtmlBtn');
+    if (!btn) return;
+    if (verifyState === 'listening') {
+      btn.classList.add('listening');
+      btn.textContent = '⏺';
+    } else {
+      btn.classList.remove('listening');
+      btn.textContent = '🎤';
+    }
+  }
+
+  // اسم النغمة (نص) عنصر منفصل عن المستطيل نفسه، ورمز علامة التحويل (لو فيه) عنصر
+  // <g> منفصل مرسوم بخطوط/مسارات — الكل يشترك بنفس رقم الدرجة data-scale-idx —
+  // نبدّل لون الاثنين غامق وقت التظليل الأصفر (نفس الكلاس يغطي fill للنص وstroke للرمز)
+  function setCurrentTargetTextClass(scaleIdx, add){
+    if (scaleIdx === null || scaleIdx === undefined) return;
+    const layerId = getActiveNotesLayerId();
+    document.querySelectorAll(`#${layerId} text[data-scale-idx="${scaleIdx}"], #${layerId} g[data-scale-idx="${scaleIdx}"]`).forEach(t => {
+      t.classList.toggle('mic-current-target-text', add);
+    });
+  }
+
+  function highlightCurrentTarget(){
+    // نشيل أي تظليل سابق لـ"الهدف الحالي" من كل النغمات (النغمات المكتسبة صح تبقى خضراء براحتها)
+    expectedSequence.forEach(item => {
+      item.rect = getLiveRect(item.rect);
+      item.rect.classList.remove('mic-current-target');
+      setCurrentTargetTextClass(item.rect.getAttribute('data-scale-idx'), false);
+    });
+    const cur = expectedSequence[currentNoteIndex];
+    if (cur) {
+      cur.rect.classList.add('mic-current-target');
+      setCurrentTargetTextClass(cur.rect.getAttribute('data-scale-idx'), true);
+    }
+  }
+
+  async function startVerify(){
+    expectedSequence = getExpectedSequence();
+    if (expectedSequence.length === 0) {
+      alert('ما فيه سلّم أو مقام أو كورد معروض حالياً على الزند للتحقق منه');
+      return;
+    }
+    // نوقف أي صوت شغّاله الموقع نفسه (كورد، سلّم، تمرين، نغمة مفردة...) قبل ما نبدأ نسمع.
+    // لو تركناه شغال، صوت الموقع نفسه يدخل عبر المايكروفون ويُقرأ خطأً كأنه عزفك — وهذا
+    // بالذات مهم بالكوردات، لأنها تشتغل صوتها تلقائياً فور اختيارها، فلو ضغطت 🎤 بسرعة
+    // بعدها وهو لسا يرن، كانت النغمة الأولى (الأساس) "تنجح" وحدها بدون ما تعزف شي فعلياً —
+    // وتوصل انطباع إن التحقق "بدأ من النغمة الوسطى" لأنه فعلياً انتقل للثانية مباشرة
+    if (typeof window.stopAllOudPlayback === 'function') window.stopAllOudPlayback();
+    // تشخيص: نطبع كل التسلسل مرة وحدة بالكونسول (F12 ← Console) عشان يسهل مراجعة كل الدرجات مع بعض
+    console.log('[تحقق العزف] التسلسل الكامل:', expectedSequence.map((it,i) => ({
+      ترتيب: i, scaleIdx: it.rect.getAttribute('data-scale-idx'), تردد: it.freq.toFixed(1)
+    })));
+    currentNoteIndex = 0;
+    lastSequenceSignature = sequenceSignature(expectedSequence);
+    resetAllNotesVisual();
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      alert('محتاجين إذن الوصول للمايكروفون عشان تشتغل ميزة "تحقق من عزفي"');
+      // نسجّل بـGoogle Analytics حالة رفض إذن المايكروفون — يفيد لو لاحظنا نسبة عالية من
+      // الرفض، يعني ناس يحاولون يستخدمون الميزة بس ما توصلهم أو يترددون بمنح الإذن
+      if (typeof window.gtag === 'function') window.gtag('event', 'mic_verify_permission_denied');
+      return;
+    }
+    // نسجّل بـGoogle Analytics إن المستخدم بدأ محاولة تحقق فعلية (حصل على إذن المايكروفون
+    // وبدأ يستمع)، مع نوع المحتوى المعروض وقتها — يفيدنا نعرف كم شخص يستخدم الميزة وعلى أي
+    // وضع أكثر (لا يحدد هوية أي شخص، بس عدّاد أحداث مجهول المصدر زي باقي أحداث GA)
+    if (typeof window.gtag === 'function') {
+      const micVerifyMode = window.chordModeActive ? 'chord' : (window.isArabicMode ? 'arabic_maqam' : 'western_scale');
+      window.gtag('event', 'mic_verify_start', { verify_mode: micVerifyMode });
+    }
+    audioCtxMic = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtxMic.createMediaStreamSource(micStream);
+    analyserNode = audioCtxMic.createAnalyser();
+    analyserNode.fftSize = 2048;
+    source.connect(analyserNode);
+    verifyState = 'listening';
+    lastGoodTime = 0;
+    updateMicBtnVisual();
+    highlightCurrentTarget();
+    // مهلة قصيرة قبل ما نبدأ نقارن فعلياً، عشان أي صدى/بقايا صوت من تشغيل الموقع (خصوصاً
+    // الكورد اللي يشتغل صوته تلقائياً) تخلص وتهدأ تماماً قبل أول قراءة من المايكروفون
+    setTimeout(() => { if (verifyState === 'listening') listenLoop(); }, 350);
+  }
+
+  function stopVerify(){
+    verifyState = 'idle';
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if (audioCtxMic) { try { audioCtxMic.close(); } catch(e){} audioCtxMic = null; }
+    updateMicBtnVisual();
+  }
+
+  // منطق المزامنة نفسه، مستقل بدالة لحاله — نستدعيها بشكلين: بشكل سلبي (كل تِك بحلقة
+  // الاستماع، كإجراء احتياطي)، وبشكل فوري نشط (مباشرة لحظة ما تضغط قائمة المقام/السلم/
+  // الكورد، بدون انتظار التِك الجاي) — الاعتماد على التِك فقط ما كان يكفي دايماً على بعض
+  // الأجهزة (خصوصاً السفاري بالآيباد)، فالاستدعاء الفوري يضمن المزامنة تصير مهما كان الجهاز
+  function performMicResyncIfNeeded(){
+    if (verifyState !== 'listening') return;
+    const freshSeq = getExpectedSequence();
+    if (freshSeq.length === 0) {
+      stopVerify();
+      return;
+    }
+    const freshSig = sequenceSignature(freshSeq);
+    if (freshSig === lastSequenceSignature) return;
+    // نوقف أي صوت شغّاله الموقع نفسه هنا أولاً، قبل ما نلتقط النغمات ونلوّن — مهم جداً:
+    // بعض دوال الإيقاف (زي إعادة ضبط مشغل المقام العربي arResetPlayer) تعيد رسم الزند
+    // من جديد بنفسها كأثر جانبي (عشان تصفّر تظليل التشغيل الأحمر)، ولو كنا لوّنّا
+    // الدرجة الأولى صفراء قبل هذا الاستدعاء، كان ينمسح فوراً بإعادة الرسم الجانبية هذي
+    if (typeof window.stopAllOudPlayback === 'function') window.stopAllOudPlayback();
+    // نفس فحص استئناف السياق الصوتي (بالأسفل بحلقة الاستماع)، بس هنا بأقرب لحظة ممكنة
+    // من التفاعل نفسه (مو بس بالتِك التالي)
+    if (audioCtxMic && audioCtxMic.state === 'suspended') {
+      audioCtxMic.resume();
+    }
+    // نعيد القراءة من جديد بعد أي إعادة رسم جانبية محتملة، عشان نضمن نمسك العناصر
+    // النهائية المستقرة المعروضة فعلياً على الشاشة، لا عناصر قديمة راح تُستبدل بعد شوي
+    expectedSequence = getExpectedSequence();
+    lastSequenceSignature = sequenceSignature(expectedSequence);
+    currentNoteIndex = 0;
+    resetAllNotesVisual();
+    highlightCurrentTarget();
+    // مهلة قصيرة قبل ما نبدأ نقارن فعلياً، عشان أي صدى/بقايا صوت (خصوصاً لو كان
+    // المحتوى الجديد كورد يشتغل صوته تلقائياً) تخلص وتهدأ تماماً
+    micSettleUntil = performance.now() + 500;
+  }
+
+  // نستدعي المزامنة فوراً (بدون انتظار أي تِك) — نأجّلها خطوة واحدة فقط (0ms) عشان نضمن
+  // إن أي معالج حدث ثاني مرتبط بنفس الضغطة (زي إعادة رسم الزند الفعلية) خلص تنفيذه أول
+  function scheduleImmediateMicResync(){
+    setTimeout(performMicResyncIfNeeded, 0);
+  }
+  window.scheduleImmediateMicResync = scheduleImmediateMicResync;
+
+  // نربط المزامنة الفورية بكل عنصر تحكم ممكن يغيّر المحتوى المعروض على الزند — بأسلوب
+  // "تفويض الأحداث" (Event Delegation) على document نفسه، عشان تشتغل بغض النظر عن توقيت
+  // إنشاء العناصر أو ترتيب تسجيل باقي المستمعين بالكود
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!t || !t.id) return;
+    if (t.id === 'maqam-select' || t.id === 'harf-select' || t.id === 'shared-tuningSelect') {
+      scheduleImmediateMicResync();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!t) return;
+    if (t.closest && (t.closest('.scale-btn') || t.closest('.c-chords-type-btn') || t.closest('.c-chord-btn'))) {
+      scheduleImmediateMicResync();
+    }
+  });
+
+  // طبقة حماية أخيرة مستقلة تماماً عن كل ما سبق: مؤقّت setInterval يفحص كل ثلث ثانية،
+  // بغض النظر عن requestAnimationFrame أو معالجات الأحداث. بعض المتصفحات (خصوصاً سفاري
+  // بالآيباد) ممكن تؤخّر أو تتجاهل rAF/setTimeout(0) بظروف معيّنة صعب التنبؤ بيها؛ هذا
+  // المؤقّت يعمل بمعزل تام عنها، فيضمن إن المزامنة تصير عاجلاً أو آجلاً مهما صار
+  setInterval(() => {
+    if (verifyState === 'listening') performMicResyncIfNeeded();
+  }, 300);
+
+  function listenLoop(){
+    if (verifyState !== 'listening') return;
+
+    // فحص احتياطي سلبي (كل تِك)، بالإضافة للاستدعاء الفوري النشط أعلاه — طبقة حماية مزدوجة
+    performMicResyncIfNeeded();
+    // الدالة أعلاه ممكن توقف التحقق بالكامل من الداخل (لو ما عاد فيه محتوى معروض للتحقق
+    // منه) — لازم نتأكد نتوقف هنا كمان، وإلا كملنا الكود تحت على متغيرات صوتية صارت فاضية
+    if (verifyState !== 'listening') return;
+
+    // حماية إضافية: نتأكد كل إطار إن كل الدرجات اللي خلّصناها صح لسا خضراء فعلياً على
+    // الشاشة (حتى لو انعاد رسم الزند بالخلفية لأي سبب وولّد عناصر جديدة بلون أزرق افتراضي).
+    // نسويها هنا (قبل فحص مهلة الاستقرار) عشان تشتغل بكل إطار بدون استثناء، حتى أثناء المهلة
+    for (let i = 0; i < currentNoteIndex; i++) {
+      const item = expectedSequence[i];
+      if (!item) continue;
+      item.rect = getLiveRect(item.rect);
+      if (item.rect.getAttribute('fill') !== '#1B7A3D') {
+        item.rect.setAttribute('fill', '#1B7A3D');
+        item.rect.setAttribute('stroke', '#0d5225');
+        item.rect._origFill = '#1B7A3D';
+        item.rect._origStroke = '#0d5225';
+      }
+      item.rect.classList.remove('mic-current-target');
+      setCurrentTargetTextClass(item.rect.getAttribute('data-scale-idx'), false);
+    }
+    // نفس الحماية بالضبط، بس للدرجة الحالية (الهدف الأصفر): بدل ما نعتمد على إنه يتلوّن
+    // مرة وحدة بس وقت المزامنة، نعيد فرضه كل إطار — لو أي إعادة رسم متأخرة (تصير أحياناً
+    // بعد اختيار مقام جديد) ولّدت عنصر جديد بلا الكلاس، ينرسم عليه صحيح بالإطار اللي بعده
+    // مباشرة تلقائياً، بدل ما يضل غايب لين تلمس أول نغمة صح
+    const curTarget = expectedSequence[currentNoteIndex];
+    if (curTarget) {
+      curTarget.rect = getLiveRect(curTarget.rect);
+      if (!curTarget.rect.classList.contains('mic-current-target')) {
+        curTarget.rect.classList.add('mic-current-target');
+        setCurrentTargetTextClass(curTarget.rect.getAttribute('data-scale-idx'), true);
+      }
+    }
+
+    if (performance.now() < micSettleUntil) {
+      rafId = requestAnimationFrame(listenLoop);
+      return;
+    }
+
+    // بعض المتصفحات (خصوصاً سفاري بالآيفون/الآيباد) تعلّق (Suspend) السياق الصوتي تلقائياً
+    // كإجراء توفير طاقة، أحياناً بمجرد أي تفاعل بالصفحة (زي اختيار مقام جديد) — لو صار
+    // هذا، الكشف يفضل معطّل تماماً (يرجع بيانات فاضية) بصمت بدون أي خطأ ظاهر. نتأكد
+    // نستأنفه فوراً كل إطار لو لقيناه معلّق، بدل ما يفضل ميت للأبد بصمت
+    if (audioCtxMic && audioCtxMic.state === 'suspended') {
+      audioCtxMic.resume();
+    }
+
+    const buffer = new Float32Array(analyserNode.fftSize);
+    analyserNode.getFloatTimeDomainData(buffer);
+    const freq = autoCorrelate(buffer, audioCtxMic.sampleRate);
+
+    if (freq !== -1 && expectedSequence[currentNoteIndex]) {
+      const expected = expectedSequence[currentNoteIndex];
+      expected.rect = getLiveRect(expected.rect); // نضمن إننا نلوّن العنصر المعروض فعلياً على الشاشة، حتى لو انعاد رسم الزند بالخلفية
+      const cents = foldedCentsDiff(freq, expected.freq);
+
+      if (cents < getCentsMatchThreshold()) {
+        lastBadTime = 0; // قراءة جيدة توقف عداد الخطأ لو كان قاعد يتراكم
+        if (!lastGoodTime) lastGoodTime = performance.now();
+        else if (performance.now() - lastGoodTime > HOLD_MS) {
+          markNoteResult(expected.rect, true);
+          currentNoteIndex++;
+          lastGoodTime = 0;
+          if (currentNoteIndex >= expectedSequence.length) {
+            const doneSeq = expectedSequence;
+            // نحفظ البصمة وقت الإكمال بالضبط — عشان نتأكد بعدين (داخل setTimeout المؤجّل)
+            // إن المستخدم ما بدّل المقام/السلم/الكورد أثناء فترة الانتظار القصيرة قبل ظهور
+            // رسالة التهنئة. لو بدّل بسرعة، مزامنة جديدة كانت صارت أصلاً وحدّثت هذا المتغيّر،
+            // فنتجنب الكتابة فوقها بالكود القديم المؤجّل (هذا بالضبط سبب "يظل يقرأ المقام
+            // السابق" اللي وصفته: تعارض توقيت بين إعادة الضبط المؤجّلة والمزامنة التلقائية)
+            const signatureAtCompletion = lastSequenceSignature;
+            // ما نوقف الاستماع بالكامل هنا (ما ننادي stopVerify) — نبقيه شغال، عشان تقدر
+            // تعيد نفس المحتوى أو تبدّل لمقام/سلم/كورد ثاني فوراً بدون ما تحتاج تضغط 🎤
+            // من جديد، بنفس مبدأ "الاستماع المستمر" اللي طبّقناه لتبديل المحتوى أثناء التحقق
+            lastGoodTime = 0;
+            lastBadTime = 0;
+            // نسجّل بـGoogle Analytics إتمام محاولة تحقق كاملة بنجاح — نفرّق بينه وبين
+            // "mic_verify_start" عشان نعرف نسبة الإتمام الفعلية، مو بس كم شخص جرّب الزر
+            if (typeof window.gtag === 'function') {
+              const micVerifyMode = window.chordModeActive ? 'chord' : (window.isArabicMode ? 'arabic_maqam' : 'western_scale');
+              window.gtag('event', 'mic_verify_complete', { verify_mode: micVerifyMode, note_count: doneSeq.length });
+            }
+            setTimeout(() => {
+              alert('🎉 أحسنت! أتقنت العزف بالكامل صح من الأول للآخر');
+              // لو المستخدم بدّل المقام/السلم/الكورد أثناء الانتظار (قبل ما توصل الرسالة)،
+              // مزامنة تلقائية جديدة صارت أصلاً وتظبط الحالة على المحتوى الجديد بشكل صحيح —
+              // نتجنب الكتابة فوقها هنا بالكامل
+              if (lastSequenceSignature !== signatureAtCompletion) return;
+              doneSeq.forEach(item => {
+                item.rect = getLiveRect(item.rect);
+                item.rect.setAttribute('fill', '#2b6fc9');
+                item.rect.setAttribute('stroke', '#1a5fa8');
+                item.rect.classList.remove('mic-current-target');
+                setCurrentTargetTextClass(item.rect.getAttribute('data-scale-idx'), false);
+                item.rect._origFill = null;
+                item.rect._origStroke = null;
+              });
+              clearResultMarks();
+              // نرجّع للبداية جاهزين لمحاولة جديدة — نفس المحتوى (تأكدنا فوق إنه ما تغيّر).
+              // لو المستخدم أوقف الاستماع بنفسه أو ضغط ▶ خلال الرسالة، ما نسوي شي
+              if (verifyState === 'listening') {
+                currentNoteIndex = 0;
+                expectedSequence = getExpectedSequence();
+                lastSequenceSignature = sequenceSignature(expectedSequence);
+                resetAllNotesVisual();
+                highlightCurrentTarget();
+              }
+            }, 250);
+            rafId = requestAnimationFrame(listenLoop);
+            return;
+          }
+          highlightCurrentTarget();
+        }
+      } else if (cents > CENTS_WRONG) {
+        lastGoodTime = 0;
+        // نطلب استمرار القراءة الخاطئة لفترة قصيرة قبل ما نحسمها خطأ فعلي — يمنع قراءة
+        // عابرة وحدة (أثناء انتقال الإصبع بين النغمات مثلاً) من تصفير كل التقدّم فوراً
+        if (!lastBadTime) lastBadTime = performance.now();
+        else if (performance.now() - lastBadTime > HOLD_WRONG_MS) {
+          lastBadTime = 0;
+          markNoteResult(expected.rect, false);
+          // نفس فكرة الحارس بالإكمال الناجح: نحفظ البصمة الحالية، ولو تغيّرت خلال الانتظار
+          // (يعني المستخدم بدّل المقام بسرعة)، نتجاهل هذا التصفير المؤجّل بدل ما يكتب فوق
+          // مزامنة جديدة أحدث منه
+          const signatureAtWrongMark = lastSequenceSignature;
+          // ما نرجع لأول السلّم ولا نلغي النغمات اللي عزفتها صح قبل — نسيب المستخدم
+          // يعيد يحاول على نفس النغمة الحالية بس، لين يظبطها، بدون ما يخسر تقدّمه السابق
+          setTimeout(() => {
+            if (verifyState !== 'listening') return;
+            if (lastSequenceSignature !== signatureAtWrongMark) return;
+            expected.rect.setAttribute('fill', '#2b6fc9');
+            expected.rect.setAttribute('stroke', '#1a5fa8');
+            expected.rect._origFill = null;
+            expected.rect._origStroke = null;
+            clearResultMarkFor(expected.rect);
+            highlightCurrentTarget();
+          }, 500);
+        }
+      } else {
+        lastBadTime = 0; // قريبة بس مو مضبوطة — نوقف عداد الخطأ برضه (مو خطأ واضح)
+      }
+      // لو كانت النغمة "قريبة بس مو مضبوطة كفاية" (بين حد التطابق وحد الخطأ الواضح)، ما نصفّر
+      // عداد الثبات — نتركه كما هو وننتظر، لأن هذا غالباً مجرد تذبذب لحظي طبيعي بصوت حقيقي
+    }
+    // صمت لحظي أو تردد غير واضح — ما نصفّر عداد الثبات هنا كمان (نفس السبب أعلاه)،
+    // إلا لو استمر الصمت لفترة طويلة نسبياً (نتركه للمستخدم يعيد المحاولة يدوياً لو احتاج)
+    rafId = requestAnimationFrame(listenLoop);
+  }
+
+  // نموضع زر HTML الحقيقي (خارج الـSVG) فوق نقطة الإحداثيات اللي كانت مخصصة له داخل الرسمة،
+  // بالاعتماد على getScreenCTM لتحويل نقطة إحداثيات الـSVG الداخلية لموقعها الفعلي على الشاشة.
+  // هذا أضمن بكثير من عنصر تفاعلي داخل الـSVG نفسه (بعض متصفحات الجوال ما تتعامل صح مع
+  // لمس عناصر SVG المتداخلة مع تحويلات/طبقات تانية بنفس الرسمة).
+  window.positionMicHtmlBtn = function(){
+    const btn = document.getElementById('micVerifyHtmlBtn');
+    const svg = document.getElementById('shared-oudSvg');
+    if (!btn || !svg || typeof window.micBtnSvgX !== 'number') return;
+    const pt = svg.createSVGPoint();
+    pt.x = window.micBtnSvgX;
+    pt.y = window.micBtnSvgY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const screenPt = pt.matrixTransform(ctm);
+    const wrapper = document.querySelector('.shared-oud-wrapper');
+    const wrapperRect = wrapper.getBoundingClientRect();
+    btn.style.left = (screenPt.x - wrapperRect.left) + 'px';
+    btn.style.top = (screenPt.y - wrapperRect.top) + 'px';
+    // نحسب حجم الزر بنفس أبعاد زر اليد بالضبط (مُمررة من الكود التاني)، محوّلة لبكسل شاشة حقيقي
+    const scaleFactor = Math.hypot(ctm.a, ctm.b); // معامل التكبير الفعلي من إحداثيات الـSVG لبكسل الشاشة
+    const w = (window.micBtnSvgW || 88) * scaleFactor;
+    const h = (window.micBtnSvgH || 66) * scaleFactor;
+    btn.style.width = w + 'px';
+    btn.style.height = h + 'px';
+    btn.style.borderRadius = (12 * scaleFactor) + 'px';
+    btn.style.fontSize = (h * 0.42) + 'px';
+  };
+  window.addEventListener('resize', () => { if (typeof window.positionMicHtmlBtn === 'function') window.positionMicHtmlBtn(); });
+  window.addEventListener('orientationchange', () => { setTimeout(() => { if (typeof window.positionMicHtmlBtn === 'function') window.positionMicHtmlBtn(); }, 200); });
+
+  updateMicBtnVisual();
+  const micHtmlBtn = document.getElementById('micVerifyHtmlBtn');
+  if (micHtmlBtn) {
+    micHtmlBtn.addEventListener('click', () => {
+      if (verifyState === 'idle') startVerify();
+      else { stopVerify(); resetAllNotesVisual(); }
+    });
+  }
+
+  // إيقاف فوري لو المستخدم بدّل التبويب/المقام/السلم أثناء التحقق، عشان ما يضل يستمع بالخلفية بدون داعي
+  window.stopMicVerifyIfActive = function(){
+    if (verifyState === 'listening') { stopVerify(); resetAllNotesVisual(); }
+  };
+
+  // لو ضغط المستخدم زر ▶ التشغيل وهو لسا بوضع "تحقق من عزفي"، على الأغلب يبي يسمع
+  // المقام/السلم/الكورد المعروض أول (بعد ما بدّله مثلاً) قبل ما يختبره فعلياً — نوقف
+  // الاستماع تلقائياً، لأنه لو تركناه شغال، صوت التشغيل نفسه بيدخل عبر المايكروفون
+  // ويُقرأ خطأً كأنه عزف المستخدم الحقيقي
+  const sharedPlayBtnForMic = document.getElementById('shared-playBtn');
+  if (sharedPlayBtnForMic) {
+    sharedPlayBtnForMic.addEventListener('click', () => {
+      if (typeof window.stopMicVerifyIfActive === 'function') window.stopMicVerifyIfActive();
+    });
+  }
 })();
 </script>
 
@@ -2440,7 +3139,7 @@ let currentRoot = 0;       // دو
 let currentScaleType = 'major';
 let currentLetterOverride = null;
 try {
-  const savedWestern = JSON.parse(sessionStorage.getItem('oudWesternSelection') || 'null');
+  const savedWestern = JSON.parse(localStorage.getItem('oudWesternSelection') || 'null');
   if (savedWestern) {
     currentRoot = savedWestern.root;
     currentScaleType = savedWestern.scaleType;
@@ -2449,10 +3148,14 @@ try {
 } catch(e){}
 
 const state = { root: currentRoot, scaleType: currentScaleType, tuningOffset: 0, letterOverride: currentLetterOverride };
+// نفضح state على window عمداً — هذا المتغيّر محاط بـIIFE (سطر أعلى)، فمن دون هذا السطر
+// أي كود بـ<script> ثاني بالصفحة يحاول يوصله بالاسم المباشر "state" ما يوصله أبداً
+// (يفضل "undefined" بصمت) — بالذات كود استرجاع الدوزان المحفوظ من localStorage
+window.state = state;
 
 // نستعيد الكورد المحفوظ (لو فيه) بعد ما تُبنى دوال الكوردات لاحقاً بنفس السكربت — نأجّلها بـ setTimeout(0) لضمان اكتمال البناء الأولي للزند والدوال أولاً
 (function restoreSavedChord(){
-  const savedDegree = parseInt(sessionStorage.getItem('oudSelectedChordDegree'));
+  const savedDegree = parseInt(localStorage.getItem('oudSelectedChordDegree'));
   if (isNaN(savedDegree)) return;
   setTimeout(() => {
     if (window.isArabicMode) return; // الكورد خاص بالغربي بس
@@ -2661,7 +3364,7 @@ function selectRootAndType(root, scaleType, letterOverride){
   if (typeof window.wxStopPlayback === 'function') window.wxStopPlayback(); // نوقف تمرين المقامات الغربية لو كان شغال (بدون الخروج من وضع التمرين نفسه)
   window.chordModeActive = false;
   window.selectedChord = null;
-  sessionStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ لأن المستخدم اختار سلم/جذر جديد صراحة
+  localStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ لأن المستخدم اختار سلم/جذر جديد صراحة
   if (typeof clearChordHighlight === 'function') clearChordHighlight();
   state.root = root;
   state.scaleType = scaleType;
@@ -2669,7 +3372,7 @@ function selectRootAndType(root, scaleType, letterOverride){
   // نزامن تظليل أزرار نوع السلم (Major/Minor...) هنا، داخل الدالة نفسها، عشان أي مكان يستدعيها
   // (بما فيها إعادة الضبط الافتراضي عند اختيار التبويب) يضمن التزامن تلقائياً بدون ما يحتاج يكرر هالسطر بنفسه
   document.querySelectorAll('.scale-btn').forEach(b => b.classList.toggle('active', b.dataset.scale === scaleType));
-  sessionStorage.setItem('oudWesternSelection', JSON.stringify({root, scaleType, letterOverride: state.letterOverride}));
+  localStorage.setItem('oudWesternSelection', JSON.stringify({root, scaleType, letterOverride: state.letterOverride}));
   updateCircleHighlight();
   updateNowPlaying();
   if (typeof resetPlayer === 'function') resetPlayer();
@@ -2850,20 +3553,36 @@ window.clearChordHighlight = clearChordHighlight;
 function renderChordHighlight(positions, active){
   chordHighlightLayer.innerHTML = '';
   if (oudNotesLayer) oudNotesLayer.style.display = 'none'; // نخفي نغمات السلم العادية عشان الكورد يبين لوحده بدون تراكب
-  positions.forEach(pos => {
+  // نحسب تردد كل نغمة من الثلاث مقدماً، ونرتّبها تصاعدياً (الأقل تردداً أولاً) — عشان ميزة
+  // "تحقق من عزفي" تختبرها من الأقل للأعلى صوتياً (الترتيب الطبيعي اللي يتوقعه العازف)،
+  // مو بترتيب الأساس/الثالثة/الخامسة النظري، لأن أقرب وضعية على الزند (القلب المختار)
+  // ما تحط الأساس دايماً كأقل نغمة — أحياناً الثالثة أو الخامسة تكون أوطى منه فعلياً
+  const freqByOriginalIdx = positions.map(pos => OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset));
+  const pitchRank = freqByOriginalIdx
+    .map((freq, i) => ({ i, freq }))
+    .sort((a, b) => a.freq - b.freq)
+    .reduce((acc, item, rank) => { acc[item.i] = rank; return acc; }, {});
+  positions.forEach((pos, chordNoteIdx) => {
     const p = OUD.getPoint(pos.string, pos.fret);
     const boxW = 64, boxH = 32;
+    const noteFreqNow = freqByOriginalIdx[chordNoteIdx];
+    const pitchOrderIdx = pitchRank[chordNoteIdx];
     const rect = el('rect', {
       x: p.x-boxW/2, y: p.y-boxH/2, width:boxW, height:boxH, rx:4,
       fill: active ? '#d64545' : '#2b6fc9',
       stroke: active ? '#a82f2f' : '#1a5fa8',
       'stroke-width': active ? 4 : 2,
+      // نفس نمط data-scale-idx/data-freq المستخدم بالمقامات والسلالم — يخلي ميزة "تحقق من
+      // عزفي" تشتغل مع الكوردات تلقائياً، بترتيب التردد الفعلي تصاعدياً (مو الترتيب النظري)
+      'data-scale-idx': pitchOrderIdx,
+      'data-freq': noteFreqNow,
     });
     rect.style.cursor = 'pointer';
     chordHighlightLayer.appendChild(rect);
     const label = el('text', {
       x:p.x, y:p.y+7, fill:'#fff', 'font-size':'22',
-      'font-family':"'Cairo', Arial, sans-serif", 'font-weight':'700', 'text-anchor':'middle'
+      'font-family':"'Cairo', Arial, sans-serif", 'font-weight':'700', 'text-anchor':'middle',
+      'data-scale-idx': pitchOrderIdx
     });
     label.style.pointerEvents = 'none'; // عشان الضغطة الفعلية توصل للمستطيل تحته، مو تنحبس بالنص فوقه
     const pc = OUD.noteAt(pos.string, pos.fret);
@@ -2903,8 +3622,10 @@ function selectChord(ch, btnEl){
   window.chordModeActive = true;
   renderChordHighlight(positions, false);
   if (typeof resetPlayer === 'function') resetPlayer(); // نوقف أي سلم تسلسلي شغال، ونرجع الزر لحالة "▶"
-  sessionStorage.setItem('oudSelectedChordDegree', String(ch.degree)); // نحفظ رقم درجة الكورد عشان يرجع بعد إعادة التحميل
+  localStorage.setItem('oudSelectedChordDegree', String(ch.degree)); // نحفظ رقم درجة الكورد عشان يرجع بعد إعادة التحميل
   if (typeof startChordPlaying === 'function') startChordPlaying(); // نشغّل صوت الكورد فوراً بمجرد اختياره، بدون ما ننتظر ضغطة ▶ بالمشغل — تسهيلاً لسماعه بسرعة
+  // نفس فكرة الخطاف بدالتي showMaqam وrenderAll — يغطي اختيار أي كورد جديد
+  if (typeof window.scheduleImmediateMicResync === 'function') window.scheduleImmediateMicResync();
 }
 
 function startChordPlaying(){
@@ -3001,7 +3722,15 @@ document.querySelectorAll('.scale-btn').forEach(btn => {
     } else if (!wasMajor && willBeMajor) {
       newRoot = (state.root + 3) % 12; // من مينور لماجور: الجذر المتعلق
     }
+    // نحفظ رقم درجة الكورد المختار حالياً (لو المستخدم كان بوضع كورد) قبل ما selectRootAndType
+    // يصفّره تلقائياً، عشان نعيد اختيار نفس الدرجة بالنوع الجديد بعدين ونبقى بوضع الكورد
+    const prevChordDegree = (window.chordModeActive && window.selectedChord) ? window.selectedChord.degree : null;
     selectRootAndType(newRoot, btn.dataset.scale, wasMajor === willBeMajor ? state.letterOverride : null);
+    if (prevChordDegree !== null && typeof buildChordsForScale === 'function' && typeof selectChord === 'function') {
+      const newChords = buildChordsForScale(state.root, state.scaleType);
+      const matchingChord = newChords.find(c => c.degree === prevChordDegree);
+      if (matchingChord) selectChord(matchingChord, null);
+    }
   });
 });
 
@@ -3016,11 +3745,24 @@ document.querySelectorAll('.c-chords-type-btn').forEach(btn => {
     } else if (!wasMajor && willBeMajor) {
       newRoot = (state.root + 3) % 12;
     }
+    // نفس الفكرة: نحفظ رقم الدرجة المختارة حالياً قبل التصفير، ونعيدها بالنوع الجديد
+    const prevChordDegree = (window.chordModeActive && window.selectedChord) ? window.selectedChord.degree : null;
     // نزامن حالة أزرار النوع الرئيسية (فوق العود) كمان، عشان تبقى متطابقة
     document.querySelectorAll('.scale-btn').forEach(b => b.classList.toggle('active', b.dataset.scale === btn.dataset.scale));
     selectRootAndType(newRoot, btn.dataset.scale, wasMajor === willBeMajor ? state.letterOverride : null);
     // نبقي القائمة مفتوحة على تبويب الكوردات، ونعيد رسمها فوراً بالنوع الجديد
     showDrawerMode('chords');
+    // نعيد اختيار نفس درجة الكورد تلقائياً بالنوع الجديد (بصفتها الصحيحة الجديدة: ميجور/ماينور/دمينشد...)
+    // عشان يبقى المستخدم فعلياً بوضع الكورد، مو يرجع لعرض السلم العادي ويحتاج يضغط الكورد يدوياً من جديد
+    if (prevChordDegree !== null && typeof buildChordsForScale === 'function' && typeof selectChord === 'function') {
+      const newChords = buildChordsForScale(state.root, state.scaleType);
+      const matchingChord = newChords.find(c => c.degree === prevChordDegree);
+      if (matchingChord) {
+        const btnEls = document.querySelectorAll('#cChordsList .c-chord-btn');
+        const matchingBtnEl = btnEls[prevChordDegree - 1] || null;
+        selectChord(matchingChord, matchingBtnEl);
+      }
+    }
   });
 });
 
@@ -3057,8 +3799,8 @@ window.oudCurrentStringCount = window.oudStringMode; // متغيّر عالمي 
 // نظام اللغة: نقرأ آخر لغة اختارها المستخدم (localStorage، تدوم حتى بعد إغلاق المتصفح)، والعربي افتراضي لأول زيارة
 window.oudLanguage = localStorage.getItem('oudLanguagePref') || 'ar';
 
-// نظام تسمية النغمات بالإنجليزي/السلالم الغربية: صولفيج (Do Re Mi) الافتراضي — يُحفظ بـsessionStorage عشان يفضل مع تبديلات زي عدد الأوتار، بس يُمسح صراحة عند تبديل اللغة (كود منفصل بزر اللغة)
-window.oudNoteSystem = sessionStorage.getItem('oudNoteSystemPref') || 'solfege';
+// نظام تسمية النغمات بالإنجليزي/السلالم الغربية: صولفيج (Do Re Mi) الافتراضي — يُحفظ بـlocalStorage عشان يفضل مع تبديلات زي عدد الأوتار، بس يُمسح صراحة عند تبديل اللغة (كود منفصل بزر اللغة)
+window.oudNoteSystem = localStorage.getItem('oudNoteSystemPref') || 'solfege';
 // دائرة الرابعات/الخامسات تُبنى بكود أسبق بالسكربت (قبل ما يتحدد window.oudNoteSystem فوق)، فتسمياتها كانت
 // تُرسم أول مرة وهو لسا undefined فترجع دايماً للاتيني (C,D,E...) بغض النظر عن الإعداد الفعلي (صولفيج افتراضياً) —
 // نزامنها هنا فوراً عشان تعكس القيمة الصحيحة من أول تحميل، بدل ما تنتظر أول ضغطة على زر Do/C
@@ -3066,7 +3808,7 @@ if (typeof window.refreshCircleLabels === 'function') window.refreshCircleLabels
 
 const OUD = (function(){
   // نقرأ اختيار اليد المحفوظ لهذي الجلسة (يبقى محفوظ حتى لو حدّثنا الصفحة، ويُمسح لو سكرنا التبويب وفتحناه من جديد)
-  window.isLeftHanded = (sessionStorage.getItem('oudHandPref') === 'left');
+  window.isLeftHanded = (localStorage.getItem('oudHandPref') === 'left');
   document.body.classList.toggle('hand-left-mode', window.isLeftHanded);
   window.syncHandButtonPositions = function(){
     const tabsBtn = document.getElementById('siteTabsToggle');
@@ -3365,7 +4107,9 @@ function buildOudStatic(){
   g2.appendChild(el('line', { x1:NECK_JOINT_END_X,y1:neckJointTopEndY,x2:NECK_JOINT_END_X,y2:neckJointBottomEndY, stroke:'#111','stroke-width':6,'stroke-linecap':'round' }));
   g2.appendChild(el('line', { x1:OUD.VISUAL_NUT_X,y1:neckYTopAtNut,x2:OUD.VISUAL_NUT_X,y2:neckYBotAtNut, stroke:'#111','stroke-width':6,'stroke-linecap':'round' }));
 
-  // زر المساعدة - انتقل لمكان أزرار اختيار اليد سابقاً (فوق الزند)، بنفس حجم زر "يمين" ومحاذي له عمودياً
+  // زر المساعدة - رجع لمكانه الأصلي تحت الزند (بعد ما جرّبنا نقله فوق، وتبيّن إن المكان
+  // البارز فوق الزند أنسب لزر المايك، بما إنه ميزة يستخدمها المستخدم كل جلسة اختبار،
+  // عكس زر المساعدة اللي يُستخدم مرة وحدة أو نادراً)
   const instBtnH = 50, instBtnR = 16;
   const helpXA = OUD.fretX(11);
   const helpXB2 = OUD.fretX(10);
@@ -3374,9 +4118,20 @@ function buildOudStatic(){
   const handScaleForHelp = 1.45, handGapForHelp = 14;
   const helpBtnW = 88 * handScaleForHelp; // نفس عرض زر "يمين" بالضبط
   const helpBtnH = 66 * handScaleForHelp; // نفس ارتفاع زر "يمين" بالضبط
-  const helpBx_outer = oldHelpBx - (helpBtnW/2 + handGapForHelp/2) + 20; // نفس موقع زر "يمين" أفقياً (محاذاة عمودية) — +20 لمطابقة groupShift المُضاف لاحقاً لأزرار اليد
-  const helpBx = helpBx_outer - helpBtnW - handGapForHelp; // زر المساعدة انتقل للمكان الداخلي (كان مكان زر اللغة)، عشان زر اللغة يصير دايماً جنب زر Do/C الجديد
-  const helpY = OUD.neckBottomY(oldHelpBx) + 60 + 25; // بدّلنا مكانه ليصير تحت الزند (كان مكان أزرار يمين/يسار وعدد الأوتار)
+  const helpBx_outer = oldHelpBx - (helpBtnW/2 + handGapForHelp/2) + 20; // زر اللغة يرتبط بهذا الموقع (يضل تحت الزند، ما تغيّر)
+  // موقع زر المساعدة (تحت الزند، مكانه الأصلي) — عنصر SVG جوّا مجموعة g2 اللي تنعكس
+  // تلقائياً ككل بوضع اليمين، فنستخدم الإحداثي الطبيعي مباشرة بدون حساب انعكاس يدوي هنا
+  const naturalBelowNeckX = helpBx_outer - helpBtnW - handGapForHelp;
+  const helpBx = naturalBelowNeckX;
+  const helpY = OUD.neckBottomY(oldHelpBx) + 60 + 25;
+  // موقع زر المايك (فوق الزند، بين فريت ٠ وفريت ١) — نفس الموقع بالضبط اللي كان زر
+  // المساعدة فيه وأثبت المستخدم إنه يظهر صح بالمتصفح الحقيقي. زر المايك عنصر HTML خارجي
+  // (مو جزء من مجموعة g2 اللي تنعكس تلقائياً)، فنحسب انعكاسه يدوياً بنفس محور انعكاس g2
+  const midXForHelpRow = (OUD.NUT_X + OUD.NECK_END_X) / 2;
+  const mirrorXForHelpRow = (x) => 2 * midXForHelpRow - x;
+  const naturalAboveNeckX = (OUD.VISUAL_NUT_X + OUD.fretX(1)) / 2; // بين فريت ٠ وفريت ١
+  const micBx = window.isLeftHanded ? naturalAboveNeckX : mirrorXForHelpRow(naturalAboveNeckX);
+  const micBy = OUD.neckTopY(naturalAboveNeckX) - 103; // نفس ارتفاع صف زر يمين/يسار وعدد الأوتار (فوق الزند)
   const helpG = el('g', { id: 'helpBtn', style: 'cursor:pointer' });
   helpG.appendChild(el('rect', {
     x: helpBx - helpBtnW/2, y: helpY - helpBtnH/2,
@@ -3476,7 +4231,7 @@ function buildOudStatic(){
         }
         window.isLeftHanded = isLeft;
         document.body.classList.toggle('hand-left-mode', isLeft);
-        sessionStorage.setItem('oudHandPref', isLeft ? 'left' : 'right');
+        localStorage.setItem('oudHandPref', isLeft ? 'left' : 'right');
         redrawOudEverything();
         // نطبّق موقع الزرين بعد إعادة الرسم الكاملة (مو قبلها)، عشان أي لمسة من إعادة الرسم ما تلغي التعديل
         if (typeof window.syncHandButtonPositions === 'function') window.syncHandButtonPositions();
@@ -3524,7 +4279,7 @@ function buildOudStatic(){
         }
         window.isLeftHanded = newIsLeft;
         document.body.classList.toggle('hand-left-mode', newIsLeft);
-        sessionStorage.setItem('oudHandPref', newIsLeft ? 'left' : 'right');
+        localStorage.setItem('oudHandPref', newIsLeft ? 'left' : 'right');
         redrawOudEverything();
         if (window.selectedChord && typeof renderChordHighlight === 'function') {
           renderChordHighlight(window.selectedChord.positions, false);
@@ -3533,6 +4288,19 @@ function buildOudStatic(){
       return hg;
     }
     oudControlBtnsLayer.appendChild(makeSingleHandBtn(hand1X, handY));
+    // زر التحقق (مايكروفون) صار زر HTML عادي فوق الرسمة (أضمن للمس بالجوال من عنصر SVG)
+    // نخزن إحداثياته بالـwindow عشان دالة التموضع الخارجية توصلها وتحدّث مكانه بعد كل رسم
+    // ياخذ المكان البارز فوق الزند (بين فريت ٠ وفريت ١) — نفس الموقع اللي كان زر المساعدة
+    // فيه وأثبت المستخدم إنه يظهر صح على المتصفح الحقيقي، وزر المساعدة رجع تحت الزند
+    window.micBtnSvgX = micBx;
+    window.micBtnSvgY = micBy;
+    window.micBtnSvgW = helpBtnW;
+    window.micBtnSvgH = helpBtnH;
+    if (typeof window.positionMicHtmlBtn === 'function') {
+      window.positionMicHtmlBtn();
+      // إعادة محاولة بعد لحظة قصيرة احتياطاً، تحسباً إن الرسمة ما اكتمل تخطيطها بعد وقت أول استدعاء
+      setTimeout(window.positionMicHtmlBtn, 150);
+    }
 
     // ===== زر تبديل عدد الأوتار (٥/٦) — بنفس حجم أزرار اليد، بدون أيقونة، نص يعكس الوضع الحالي =====
     function makeStringCountBtn(x, y){
@@ -3568,9 +4336,9 @@ function buildOudStatic(){
         if (typeof window.stopAnySustainedNote === 'function') window.stopAnySustainedNote();
         if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
         // يتصفّر المقام/السلم بس (يرجع لافتراضي كل تبويب) — اليد، التبويب النشط، الدوزان، والسرعة تبقى زي ما هي (خصائص شخصية ثابتة للعازف)
-        sessionStorage.removeItem('oudArabicSelection');
-        sessionStorage.removeItem('oudWesternSelection');
-        sessionStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ كمان عشان يرجع للافتراضي مع المقام/السلم
+        localStorage.removeItem('oudArabicSelection');
+        localStorage.removeItem('oudWesternSelection');
+        localStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ كمان عشان يرجع للافتراضي مع المقام/السلم
         OUD.setStringCount(newCount);
         window.location.reload();
       });
@@ -3637,13 +4405,13 @@ function buildOudStatic(){
         const newLang = (window.oudLanguage === 'en') ? 'ar' : 'en';
         localStorage.setItem('oudLanguagePref', newLang);
         window.oudLanguage = newLang;
-        sessionStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ عشان يرجع كل شي للافتراضي بعد تبديل اللغة
-        sessionStorage.removeItem('oudNoteSystemPref'); // نمسح نظام تسمية النغمات (Do/C) كمان عشان يرجع لصولفيج الافتراضي بعد تبديل اللغة تحديداً
+        localStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ عشان يرجع كل شي للافتراضي بعد تبديل اللغة
+        localStorage.removeItem('oudNoteSystemPref'); // نمسح نظام تسمية النغمات (Do/C) كمان عشان يرجع لصولفيج الافتراضي بعد تبديل اللغة تحديداً
         window.location.reload();
       });
       return lg;
     }
-    const naturalLangX = helpBx_outer; // زر اللغة انتقل للمكان الخارجي (كان مكان زر المساعدة)، عشان يضل دايماً جنب زر Do/C المستقبلي
+    const naturalLangX = helpBx_outer; // زر اللغة يبقى بمكانه القديم (تحت الزند)، ما تغيّر
     const langBtnFinalX = window.isLeftHanded ? naturalLangX : mirrorXForBtns(naturalLangX);
     const langBtn = makeLanguageBtn(langBtnFinalX, helpY);
     oudControlBtnsLayer.appendChild(langBtn);
@@ -3683,7 +4451,7 @@ function buildOudStatic(){
         ng.addEventListener('click', () => {
           const newSystem = (window.oudNoteSystem === 'letter') ? 'solfege' : 'letter';
           window.oudNoteSystem = newSystem;
-          sessionStorage.setItem('oudNoteSystemPref', newSystem); // يفضل مع تبديلات الجلسة (زي عدد الأوتار)، بس يُمسح صراحة عند تبديل اللغة
+          localStorage.setItem('oudNoteSystemPref', newSystem); // يفضل مع تبديلات الجلسة (زي عدد الأوتار)، بس يُمسح صراحة عند تبديل اللغة
           t.textContent = (newSystem === 'letter') ? 'C' : 'Do';
           // نحدّث كل الأماكن المتأثرة حياً بدون إعادة تحميل الصفحة
           if (typeof window.redrawOudEverything === 'function') window.redrawOudEverything();
@@ -4052,7 +4820,10 @@ function drawOudScale(root, scaleType, direction, stepDirections, currentIndex){
       fill: fillColor,
       stroke: isCurrent ? '#a82f2f' : '#1a5fa8',
       'stroke-width': isCurrent ? 4 : 2,
-      'data-scale-idx': scaleIdx
+      'data-scale-idx': scaleIdx,
+      'data-freq': OUD.frequencyAt(pos.string, pos.fret, state.tuningOffset),
+      'data-string': pos.string,
+      'data-fret': pos.fret
     });
     if(isCurrent){
       const cx = p.x, cy = p.y;
@@ -4183,6 +4954,9 @@ document.getElementById('helpCloseBtn').addEventListener('click', function() {
 window.renderAll = function renderAll(){
   if(window.isArabicMode) return;
   drawOudScale(state.root, state.scaleType);
+  // نفس فكرة الخطاف بدالة showMaqam — نقطة وحيدة تغطي كل طرق تبديل الجذر أو نوع السلم
+  // الغربي (دائرة الخامسات، أزرار النوع، إلخ) بدون الحاجة نربط كل زر لحاله
+  if (typeof window.scheduleImmediateMicResync === 'function') window.scheduleImmediateMicResync();
 }
 
 if(!window.isArabicMode) renderAll();
@@ -4836,6 +5610,7 @@ window.wxResume = wxResume;
 })();
 </script>
 
+
 <script>
 /* =====================================================================
    منطق صفحة فصائل المقامات (مُحاط بـ IIFE لمنع تعارض الأسماء العامة)
@@ -5075,11 +5850,28 @@ window.wxResume = wxResume;
     let isManuallyStopped = false;
     let pitchSemitones = 0;
     // نستعيد آخر دوزان محفوظ لهذي الجلسة، أو الافتراضي (عالمي) لو أول مرة
-    const savedTuning = sessionStorage.getItem('oudTuningPref');
+    const savedTuning = localStorage.getItem('oudTuningPref');
     if (savedTuning !== null) {
       pitchSemitones = parseFloat(savedTuning);
+      // مهم: نحدّث state.tuningOffset هنا كمان — هذا هو المتغيّر اللي فعلياً يستخدمه محرك
+      // صوت السلالم الغربية (الكوردات، الضغط على نغمة، إلخ عبر OUD.frequencyAt) وقت العزف
+      // الحي. من دون هذا السطر، كان يبقى صفر (الدوزان العالمي) دايماً بعد إعادة فتح الموقع،
+      // حتى لو القائمة نفسها كانت تعرض الدوزان المحفوظ صح — يعني عرض صحيح بس صوت فعلي غلط
+      if (typeof window.state !== 'undefined') window.state.tuningOffset = pitchSemitones;
       const savedTuningSelectEl = document.getElementById('shared-tuningSelect');
       if (savedTuningSelectEl) savedTuningSelectEl.value = savedTuning;
+      // تعيين .value مباشرة ما يشغّل حدث change تلقائياً، فنستدعي تحديث الترددات يدوياً
+      // (بمحاولات متكررة قصيرة، لأن دالة التحديث والمقام الأول ممكن يترسمون بترتيب متغيّر)
+      let tuningRestoreTries = 0;
+      const tuningRestoreRetry = setInterval(() => {
+        tuningRestoreTries++;
+        if (typeof window.refreshAllNoteFrequencies === 'function') {
+          window.refreshAllNoteFrequencies();
+          clearInterval(tuningRestoreRetry);
+        } else if (tuningRestoreTries > 20) {
+          clearInterval(tuningRestoreRetry);
+        }
+      }, 150);
     }
     let currentAudioPath = '';
     let progressInterval = null;
@@ -5291,7 +6083,7 @@ window.wxResume = wxResume;
 
     // تهيئة عند التحميل: نستعيد آخر اختيار محفوظ لهذي الجلسة، أو الافتراضي (الراست) لجلسة جديدة
     let savedArabicSelection = null;
-    try { savedArabicSelection = JSON.parse(sessionStorage.getItem('oudArabicSelection') || 'null'); } catch(e){}
+    try { savedArabicSelection = JSON.parse(localStorage.getItem('oudArabicSelection') || 'null'); } catch(e){}
     if (savedArabicSelection && maqamat[savedArabicSelection.fasila]) {
       updateMaqam(savedArabicSelection.fasila);
       if (maqamat[savedArabicSelection.fasila].includes(savedArabicSelection.maqam)) {
@@ -5776,6 +6568,8 @@ window.wxResume = wxResume;
         rect.setAttribute('stroke', isCurrent ? '#a82f2f' : '#1a5fa8');
         rect.setAttribute('stroke-width', isCurrent ? 3 : 2);
         rect.setAttribute('data-scale-idx', degIdx);
+        rect.setAttribute('data-freq', posToFreq(effectiveQ));
+        rect.setAttribute('data-quarters', effectiveQ); // نخزن "الوصفة" الخام (المسافة بالأرباع) عشان نقدر نعيد حساب التردد فوراً لو تغيّر الدوزان بدون إعادة رسم كامل
         rect.style.cursor = 'pointer';
         layer.appendChild(rect);
 
@@ -5833,6 +6627,7 @@ window.wxResume = wxResume;
           label.setAttribute('font-weight', '700');
           label.textContent = displayBaseName(text);
           layer.appendChild(label);
+          label.setAttribute('data-scale-idx', degIdx); // كانت ناقصة هنا (موجودة بالفرع الثاني بس) — بدونها ميزة التحقق بالمايكروفون ما تلقى النص لتغيّر لونه فوق الأصفر
         }
       });
 
@@ -5847,6 +6642,26 @@ window.wxResume = wxResume;
       const tuningOffset = parseFloat(document.getElementById('shared-tuningSelect').value) || 0;
       return SOL3_FREQ * Math.pow(2, (quartersFromSol / 24) + (tuningOffset / 12));
     }
+
+    // يعيد حساب data-freq لكل النغمات المعروضة حالياً على الزند (مقام عربي أو سلم غربي)
+    // بناءً على الدوزان الحالي — يُستدعى فوراً كل ما المستخدم يغيّر الدوزان من القائمة
+    window.refreshAllNoteFrequencies = function(){
+      const layer = document.getElementById('oudNotesLayer');
+      if (!layer) return;
+      const tuningOffsetNow = parseFloat(document.getElementById('shared-tuningSelect').value) || 0;
+      layer.querySelectorAll('rect[data-scale-idx]').forEach(r => {
+        if (r.hasAttribute('data-quarters')) {
+          // مقام عربي: نعيد الحساب بنفس صيغة posToFreq
+          const q = parseFloat(r.getAttribute('data-quarters'));
+          r.setAttribute('data-freq', posToFreq(q));
+        } else if (r.hasAttribute('data-string') && r.hasAttribute('data-fret') && typeof OUD !== 'undefined' && OUD.frequencyAt) {
+          // سلم غربي: نعيد الحساب بنفس صيغة OUD.frequencyAt
+          const s = parseInt(r.getAttribute('data-string'));
+          const fr = parseInt(r.getAttribute('data-fret'));
+          r.setAttribute('data-freq', OUD.frequencyAt(s, fr, tuningOffsetNow));
+        }
+      });
+    };
 
     // ===== مشغل المقام العربي =====
     let arPlayerState = 'stopped';
@@ -5882,11 +6697,11 @@ window.wxResume = wxResume;
         range.value = bpm;
         bpmValue.textContent = bpm;
         window.AR_STEP_MS = bpmToStepMs(bpm);
-        if (save !== false) sessionStorage.setItem('oudSpeedPref', String(bpm)); // نحفظ آخر سرعة يختارها المستخدم، تبقى ثابتة حتى بعد إعادة التحميل
+        if (save !== false) localStorage.setItem('oudSpeedPref', String(bpm)); // نحفظ آخر سرعة يختارها المستخدم، تبقى ثابتة حتى بعد إعادة التحميل
       }
 
       // نستعيد آخر سرعة محفوظة لهذي الجلسة، أو الافتراضي لو أول مرة
-      const savedBpm = parseInt(sessionStorage.getItem('oudSpeedPref'));
+      const savedBpm = parseInt(localStorage.getItem('oudSpeedPref'));
       applyBpm(isNaN(savedBpm) ? DEFAULT_BPM : savedBpm, false);
 
       range.addEventListener('input', () => applyBpm(parseInt(range.value)));
@@ -6018,7 +6833,7 @@ window.wxResume = wxResume;
         if (r._sourceNode) { try { r._sourceNode.stop(); } catch(e){} }
         r._isPlaying = false;
         r.setAttribute('fill', r._origFill || '#2b6fc9');
-        r.setAttribute('stroke', '#1a5fa8');
+        r.setAttribute('stroke', r._origStroke || '#1a5fa8');
         r.setAttribute('stroke-width', 2);
         window._currentPlayingRect = null;
       }
@@ -7088,7 +7903,7 @@ window.wxResume = wxResume;
       const maqam = maqamSelect.value;
       const harf = harfSelect.value;
       if (!maqam || !harf) return;
-      sessionStorage.setItem('oudArabicSelection', JSON.stringify({fasila, maqam, harf}));
+      localStorage.setItem('oudArabicSelection', JSON.stringify({fasila, maqam, harf}));
 
       const intervals = MAQAM_INTERVALS[maqam];
       if (intervals) {
@@ -7140,6 +7955,10 @@ window.wxResume = wxResume;
         window.isArabicMode = false;
         currentAudioPath = `sounds/${fasilaFolder[fasila]}/${maqamFolder[maqam]}/${harf}.mp3`;
       }
+      // نستدعي مزامنة "تحقق من عزفي" هنا مباشرة (لو كانت شغالة) — أضمن نقطة وحيدة تغطي
+      // كل طرق اختيار المقام (القائمة المباشرة، أزرار عائلة المقام بالراديو، الاستعادة من
+      // localStorage، إلخ)، بدل ما نحاول نربط كل عنصر تحكم لحاله ونفوّت واحد منها بالغلط
+      if (typeof window.scheduleImmediateMicResync === 'function') window.scheduleImmediateMicResync();
     }
 
     document.getElementById('showBtn').onclick = showMaqam;
@@ -7290,7 +8109,11 @@ document.getElementById('shared-playBtn').onclick = async function() {
     document.getElementById('shared-tuningSelect').onchange = function() {
       pitchSemitones = parseFloat(this.value);
       if (sourceNode && isPlaying) sourceNode.detune.value = pitchSemitones * 100;
-      sessionStorage.setItem('oudTuningPref', this.value); // نحفظ آخر دوزان يختاره المستخدم، يبقى ثابت حتى بعد إعادة التحميل
+      localStorage.setItem('oudTuningPref', this.value); // نحفظ آخر دوزان يختاره المستخدم بشكل دائم (localStorage)، يبقى ثابت حتى لو سكّر التطبيق كلياً وفتحه بعد أيام — مو بس نفس الجلسة
+      // نحدّث فوراً كل الترددات المتوقعة المخزّنة على النغمات المعروضة حالياً على الزند (data-freq)
+      // — بدون هذا، أي ميزة تعتمد على "التردد المتوقع" (زي التحقق من العزف) تفضل تقارن بدوزان قديم
+      // حتى لو غيّر المستخدم الدوزان من القائمة، لأن القيمة كانت تُحسب وقت الرسم فقط، مو لحظياً.
+      if (typeof window.refreshAllNoteFrequencies === 'function') window.refreshAllNoteFrequencies();
     };
 
     function resetPlayer() {
