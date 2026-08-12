@@ -2796,7 +2796,13 @@ window.isArabicMode = false;
     });
     const cur = expectedSequence[currentNoteIndex];
     if (cur) {
+      cur.rect = getLiveRect(cur.rect);
       cur.rect.classList.add('mic-current-target');
+      // نضبط الأصفر بالكود مباشرة كمان (مو بس بالاعتماد على كلاس CSS) — احتياط إضافي
+      // ضد أي حالة نادرة (إعادة رسم متزامنة، تأخر إعادة رسم بالمتصفح) يفضل فيها اللون
+      // الأخضر القديم ظاهر لحظياً بدل ما يتحدّث فوراً لأصفر الهدف الجديد
+      cur.rect.setAttribute('fill', '#ffe100');
+      cur.rect.setAttribute('stroke', '#c9a100');
       setCurrentTargetTextClass(cur.rect.getAttribute('data-scale-idx'), true);
     }
   }
@@ -3008,6 +3014,8 @@ window.isArabicMode = false;
       curTarget.rect = getLiveRect(curTarget.rect);
       if (!curTarget.rect.classList.contains('mic-current-target')) {
         curTarget.rect.classList.add('mic-current-target');
+        curTarget.rect.setAttribute('fill', '#ffe100');
+        curTarget.rect.setAttribute('stroke', '#c9a100');
         setCurrentTargetTextClass(curTarget.rect.getAttribute('data-scale-idx'), true);
       }
     }
