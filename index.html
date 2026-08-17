@@ -3834,7 +3834,20 @@ function showDrawerMode(mode){
   document.getElementById('cChordsPane').style.display = (mode === 'chords') ? 'flex' : 'none';
   if (mode === 'chords') renderChordsList();
 }
-document.getElementById('cTabCircle').addEventListener('click', () => showDrawerMode('circle'));
+document.getElementById('cTabCircle').addEventListener('click', () => {
+  // لو كان الزند يعرض كورداً (وضع الكورد فعّال)، نرجّعه لعرض السلم الحالي عادياً
+  // عند الرجوع لتبويب "دائرة الرابعات والخامسات" — بدون هذا، يبقى الكورد ظاهراً
+  // على الزند رغم إننا رجعنا لتبويب اختيار السلم، وهذا سلوك غير متوقع للمستخدم
+  if (window.chordModeActive) {
+    if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+    window.chordModeActive = false;
+    window.selectedChord = null;
+    localStorage.removeItem('oudSelectedChordDegree');
+    if (typeof clearChordHighlight === 'function') clearChordHighlight();
+    if (typeof window.renderAll === 'function') window.renderAll();
+  }
+  showDrawerMode('circle');
+});
 document.getElementById('cTabChords').addEventListener('click', () => showDrawerMode('chords'));
 
 /* ===== محرك حساب الكوردات (٧ كوردات لأي سلم، بأسمائها ومواقعها على الزند) ===== */
