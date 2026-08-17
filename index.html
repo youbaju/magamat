@@ -76,7 +76,7 @@
   // فهرس صفحة الشرح: يقفز بسلاسة للقسم المطلوب لما تضغط عليه بالفهرس
   window.scrollToHelpSection = function(id){
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
   };
   // نضيف زر "رجوع للفهرس" تلقائياً بنهاية كل قسم شرح — بدل ما نكرره يدوياً بكل قسم من
   // الـ٣٦ قسم (١٨ عربي + ١٨ إنجليزي)، نولّده مرة وحدة بالكود بمجرد ما الصفحة تحمّل
