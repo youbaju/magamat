@@ -76,7 +76,7 @@
   // فهرس صفحة الشرح: يقفز بسلاسة للقسم المطلوب لما تضغط عليه بالفهرس
   window.scrollToHelpSection = function(id){
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   // نضيف زر "رجوع للفهرس" تلقائياً بنهاية كل قسم شرح — بدل ما نكرره يدوياً بكل قسم من
   // الـ٣٦ قسم (١٨ عربي + ١٨ إنجليزي)، نولّده مرة وحدة بالكود بمجرد ما الصفحة تحمّل
@@ -86,7 +86,7 @@
       // اتنفّذ أكثر من مرة)، ما نضيف وحد ثاني فوقه
       if (sec.querySelector('.help-back-to-toc')) return;
       const isEnglish = sec.id.indexOf('-en-') !== -1;
-      const btn = document.createElement('div'); 
+      const btn = document.createElement('div');
       btn.className = 'help-back-to-toc';
       btn.textContent = isEnglish ? '↑ Back to Index' : '↑ رجوع للفهرس';
       btn.onclick = function(){
@@ -111,7 +111,7 @@
       const searchableText = new Map();
       sections.forEach(function(sec){
         const clone = sec.cloneNode(true);
-        const navBtn = clone.querySelector('.help-back-to-toc'); 
+        const navBtn = clone.querySelector('.help-back-to-toc');
         if (navBtn) navBtn.remove();
         searchableText.set(sec, clone.textContent.toLowerCase());
       });
@@ -3832,7 +3832,18 @@ function showDrawerMode(mode){
   document.getElementById('cTabChords').classList.toggle('active', mode === 'chords');
   document.getElementById('cCirclePane').style.display = (mode === 'circle') ? 'flex' : 'none';
   document.getElementById('cChordsPane').style.display = (mode === 'chords') ? 'flex' : 'none';
-  if (mode === 'chords') renderChordsList();
+  if (mode === 'chords') {
+    renderChordsList();
+    // لو دخلنا تبويب الكوردات وما فيه كورد مختار أصلاً (وضع الكورد غير مفعّل)،
+    // نختار أول كورد بالسلم الحالي تلقائياً — نفس مبدأ باقي التبويبات (المقامات
+    // العربية والغربية) اللي دايماً تعرض اختياراً افتراضياً على الزند بمجرد
+    // التبديل، بدل ترك الزند يعرض السلم القديم بينما تبويب الكوردات نشط ظاهرياً
+    if (!window.chordModeActive && typeof buildChordsForScale === 'function' && typeof selectChord === 'function') {
+      const firstChordBtn = document.querySelector('#cChordsList .c-chord-btn');
+      const chords = buildChordsForScale(state.root, state.scaleType);
+      if (firstChordBtn && chords.length) selectChord(chords[0], firstChordBtn);
+    }
+  }
 }
 document.getElementById('cTabCircle').addEventListener('click', () => {
   // لو كان الزند يعرض كورداً (وضع الكورد فعّال)، نرجّعه لعرض السلم الحالي عادياً
