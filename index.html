@@ -111,7 +111,7 @@
       const searchableText = new Map();
       sections.forEach(function(sec){
         const clone = sec.cloneNode(true);
-        const navBtn = clone.querySelector('.help-back-to-toc');
+        const navBtn = clone.querySelector('.help-back-to-toc'); 
         if (navBtn) navBtn.remove();
         searchableText.set(sec, clone.textContent.toLowerCase());
       });
