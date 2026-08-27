@@ -3497,7 +3497,7 @@ window.state = state;
     if (typeof buildChordsForScale !== 'function' || typeof selectChord !== 'function') return;
     const chords = buildChordsForScale(state.root, state.scaleType);
     const savedChord = chords.find(c => c.degree === savedDegree);
-    if (savedChord) selectChord(savedChord, null);
+    if (savedChord) selectChord(savedChord, null, true); // true = بدون تشغيل صوت تلقائي، هذا استعادة صامتة بس
   }, 0);
 })();
 
@@ -3759,6 +3759,7 @@ function selectRootAndType(root, scaleType, letterOverride){
   if (typeof window.wxStopPlayback === 'function') window.wxStopPlayback(); // نوقف تمرين المقامات الغربية لو كان شغال (بدون الخروج من وضع التمرين نفسه)
   window.chordModeActive = false;
   window.selectedChord = null;
+  window.lastChordDegreeBeforeCircle = null; // نمسح تذكّر الدرجة المؤقت كمان — اختيار جديد صريح يلغي أي تذكّر قديم
   // نرجّع إظهار زر/خانة تفعيل التمرين (كانا مخفيين طول ما الكورد ظاهر — راجع selectChord)
   syncExerciseControlsVisibility();
   localStorage.removeItem('oudSelectedChordDegree'); // نمسح الكورد المحفوظ لأن المستخدم اختار سلم/جذر جديد صراحة
@@ -3835,9 +3836,19 @@ function showDrawerMode(mode){
     // العربية والغربية) اللي دايماً تعرض اختياراً افتراضياً على الزند بمجرد
     // التبديل، بدل ترك الزند يعرض السلم القديم بينما تبويب الكوردات نشط ظاهرياً
     if (!window.chordModeActive && typeof buildChordsForScale === 'function' && typeof selectChord === 'function') {
-      const firstChordBtn = document.querySelector('#cChordsList .c-chord-btn');
       const chords = buildChordsForScale(state.root, state.scaleType);
-      if (firstChordBtn && chords.length) selectChord(chords[0], firstChordBtn);
+      if (chords.length) {
+        // لو فيه كورد كان مختاراً قبل ما نروح لتبويب الدائرة (رجعنا بدون اختيار سلم/جذر
+        // جديد فعلياً)، نرجّع نفس الكورد بالذات (بنفس رقم الدرجة) بدل اختيار أول كورد
+        // بالقائمة دايماً — يطابق توقّع المستخدم إن اختياره محفوظ طول ما ما غيّر السلم
+        const rememberedDegree = window.lastChordDegreeBeforeCircle;
+        const rememberedChord = (rememberedDegree != null) ? chords.find(c => c.degree === rememberedDegree) : null;
+        const chordToSelect = rememberedChord || chords[0];
+        const btnIndex = chords.indexOf(chordToSelect);
+        const chordBtns = document.querySelectorAll('#cChordsList .c-chord-btn');
+        const btnToSelect = chordBtns[btnIndex] || chordBtns[0];
+        if (btnToSelect) selectChord(chordToSelect, btnToSelect);
+      }
     }
   }
 }
@@ -3847,6 +3858,10 @@ document.getElementById('cTabCircle').addEventListener('click', () => {
   // على الزند رغم إننا رجعنا لتبويب اختيار السلم، وهذا سلوك غير متوقع للمستخدم
   if (window.chordModeActive) {
     if (typeof window.resetChordPlayer === 'function') window.resetChordPlayer();
+    // نحتفظ برقم درجة الكورد الحالي (قبل ما نصفّر selectedChord) بمتغيّر مؤقت — عشان لو
+    // المستخدم رجع لتبويب "الكوردات" بعدين بدون ما يختار سلم/جذر جديد فعلياً، نقدر نرجّع
+    // نفس الكورد بالذات بدل ما نختار أول كورد بالقائمة تلقائياً (سلوك غير متوقع للمستخدم)
+    window.lastChordDegreeBeforeCircle = window.selectedChord ? window.selectedChord.degree : null;
     window.chordModeActive = false;
     window.selectedChord = null;
     localStorage.removeItem('oudSelectedChordDegree');
@@ -4038,7 +4053,7 @@ function renderChordHighlight(positions, active){
   if (typeof window.applyOudHorizontalMirror === 'function') window.applyOudHorizontalMirror(chordHighlightLayer);
 }
 
-function selectChord(ch, btnEl){
+function selectChord(ch, btnEl, skipAutoPlay){
   resetChordPlayer(); // نوقف أي كورد كان شغال قبل
   document.querySelectorAll('.c-chord-btn').forEach(b => b.classList.remove('selected'));
   if (btnEl) btnEl.classList.add('selected');
@@ -4062,7 +4077,11 @@ function selectChord(ch, btnEl){
   renderChordHighlight(positions, false);
   if (typeof resetPlayer === 'function') resetPlayer(); // نوقف أي سلم تسلسلي شغال، ونرجع الزر لحالة "▶"
   localStorage.setItem('oudSelectedChordDegree', String(ch.degree)); // نحفظ رقم درجة الكورد عشان يرجع بعد إعادة التحميل
-  if (typeof startChordPlaying === 'function') startChordPlaying(); // نشغّل صوت الكورد فوراً بمجرد اختياره، بدون ما ننتظر ضغطة ▶ بالمشغل — تسهيلاً لسماعه بسرعة
+  // skipAutoPlay=true تُستخدم فقط عند الاستعادة الصامتة لآخر كورد عند فتح التطبيق من جديد —
+  // نعرض الكورد بصرياً (النغمات الزرقاء على الزند) بدون تشغيل صوته تلقائياً أو الإضاءة الحمراء
+  // المؤقتة، لأن المستخدم ما طلب تشغيل صوت بهذي اللحظة، بس فتح التطبيق بس. الضغط اليدوي على
+  // كورد (من المستخدم فعلياً) يبقى يشغّل الصوت فوراً زي ما هو، بدون أي تغيير بذاك السلوك
+  if (!skipAutoPlay && typeof startChordPlaying === 'function') startChordPlaying(); // نشغّل صوت الكورد فوراً بمجرد اختياره، بدون ما ننتظر ضغطة ▶ بالمشغل — تسهيلاً لسماعه بسرعة
   // نفس فكرة الخطاف بدالتي showMaqam وrenderAll — يغطي اختيار أي كورد جديد
   if (typeof window.scheduleImmediateMicResync === 'function') window.scheduleImmediateMicResync();
 }
