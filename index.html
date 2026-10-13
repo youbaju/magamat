@@ -17,12 +17,14 @@
   var KEY='oudTheme';
   function get(){ try{ var v=localStorage.getItem(KEY); return (v==='dark'||v==='light')?v:'auto'; }catch(e){ return 'auto'; } }
   function apply(m){
-    var st=document.getElementById('dark-mode-css'); if(!st) return;
-    st.media = m==='dark' ? 'all' : (m==='light' ? 'not all' : '(prefers-color-scheme: dark)');
+    var st=document.getElementById('dark-mode-css'); // قد لا يكون موجوداً بعد (ينتهي تحميله بآخر الصفحة)، فنكمل لضبط وسوم المتصفح مبكراً
+    if(st) st.media = m==='dark' ? 'all' : (m==='light' ? 'not all' : '(prefers-color-scheme: dark)');
     var fl=document.getElementById('force-light-css');
-    if(m==='light'){ if(!fl){ fl=document.createElement('style'); fl.id='force-light-css'; fl.textContent=':root,html,body{color-scheme:only light !important}'; document.head.appendChild(fl); } }
+    var autoDark=false; try{ autoDark=window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){}
+    var asLight=(m==='light')||(m==='auto'&&!autoDark); // الفاتح الفعلي (يدوي أو تلقائي): نمنع تغميق المتصفح التلقائي (مثل Samsung Internet)
+    if(asLight){ if(!fl){ fl=document.createElement('style'); fl.id='force-light-css'; fl.textContent=':root,html,body{color-scheme:only light !important}'; document.head.appendChild(fl); } }
     else if(fl){ fl.parentNode.removeChild(fl); }
-    var cs=document.getElementById('cs-meta'); if(cs) cs.setAttribute('content', m==='dark'?'dark':(m==='light'?'only light':'light dark'));
+    var cs=document.getElementById('cs-meta'); if(cs) cs.setAttribute('content', m==='dark'?'dark':(asLight?'only light':'light dark'));
     var td=document.getElementById('tc-dark');
     if(td) td.setAttribute('media', m==='dark' ? 'all' : (m==='light' ? 'not all' : '(prefers-color-scheme: dark)'));
   }
@@ -4983,9 +4985,10 @@ function buildOudStatic(){
   }
 
   // 4) الأوتار الخمسة (وتر فا مفرد، والأربعة الأسفل مزدوجة)
-  const stringColors = ['#5c3414','#9c5a18','#c98a2e','#7a7a7a','#3a3a3a','#2a2a2a'];
-  const stringWidths = [5.2, 4.6, 4.0, 3.4, 3.0, 2.6];
-  const doubleOffset = [0, 5, 5, 5, 4, 4];
+  // مجموعتان موحّدتا اللون بلا تدرّج: نحاسي (فا، لا، ري) وفضي (صول، دو، والسادس). وتر الفا الأسمك بين الأوتار
+  const stringColors = ['#b4541a','#b4541a','#b4541a','#161616','#161616','#161616'];
+  const stringWidths = [7.2, 4.8, 4.3, 4.2, 3.9, 3.3];
+  const doubleOffset = [0, 9, 8, 7.7, 7.4, 7]; // المسافة بين مركزي الخطين = السماكة + فراغ ظاهر (~3.5)
   window._doubleOffset = doubleOffset; // الإزاحة بين الوترين المزدوجين (0 = مفرد)
   const xStringStart = OUD.VISUAL_NUT_X;
   const xStringEnd = OUD.fretX(13);
@@ -5002,7 +5005,7 @@ function buildOudStatic(){
         x1:p1.x, y1:p1.y + offset, 
         x2:p2.x, y2:p2.y + offset, 
         stroke:stringColors[i], 
-        'stroke-width':stringWidths[i] * 0.85, 
+        'stroke-width':stringWidths[i], 
         'stroke-linecap':'round',
         id:`oudString${i}b`
       });
@@ -5036,7 +5039,7 @@ function buildOudStatic(){
     if (strEl2) {
       pathEl2 = document.createElementNS(ns2, 'path');
       pathEl2.setAttribute('stroke', stringColors[stringIdx]);
-      pathEl2.setAttribute('stroke-width', stringWidths[stringIdx] * 0.85);
+      pathEl2.setAttribute('stroke-width', stringWidths[stringIdx]);
       pathEl2.setAttribute('stroke-linecap', 'round');
       pathEl2.setAttribute('fill', 'none');
       parent.insertBefore(pathEl2, strEl2);
@@ -5501,14 +5504,14 @@ function buildOudStatic(){
     // الخط الرئيسي
     g2.appendChild(el('line', {
       x1: x1, y1: y1, x2: x2, y2: y2,
-      stroke: stringColors[i], 'stroke-width': stringWidths[i] * 0.7
+      stroke: stringColors[i], 'stroke-width': stringWidths[i]
     }));
 
     // الخط المزدوج للأوتار 1-4
     if (doubleOffset[i] > 0) {
       g2.appendChild(el('line', {
         x1: x1, y1: y1 + doubleOffset[i], x2: x2, y2: y2 + doubleOffset[i],
-        stroke: stringColors[i], 'stroke-width': stringWidths[i] * 0.6
+        stroke: stringColors[i], 'stroke-width': stringWidths[i]
       }));
     }
 
@@ -5606,6 +5609,10 @@ function buildOudStatic(){
     maxX = mirroredMaxX;
   }
   oudSvg.setAttribute('viewBox', `${minX} ${minY} ${maxX-minX} ${maxY-minY}`);
+  // نعيد تموضع زر المايك وزر النغمة فوراً بعد تحديث الـviewBox (حسابهما الأول بأعلى الدالة يتم قبل تغيّر الـviewBox
+  // فيستخدم مقياساً قديماً من وضع اليد السابق، وكان يظهر قفز الأزرار أو بقاؤها بمكان خاطئ أحياناً)
+  if (typeof window.positionMicHtmlBtn === 'function') window.positionMicHtmlBtn();
+  if (typeof window.positionNoteModeToggleBtn === 'function') window.positionNoteModeToggleBtn();
 
   const btnX = btnX2;
   const btnY = visionY + (visionSize - btnH) / 2;
@@ -5651,7 +5658,7 @@ function buildOudStatic(){
   let themeParts = null;
   // الزر يظهر بكل المتصفحات (بعضها مثل سامسونج لا يبلّغ الصفحة بوضع الجهاز الداكن)
   {
-    const tW = 160;
+    const tW = btnW; // نفس عرض زري التواصل والتقييم تماماً
     const tX = visionX + (visionSize - tW) / 2;
     const isEn = (window.oudLanguage === 'en');
     const themeG = el('g', { id:'svgThemeBtn', style:'cursor:pointer; pointer-events:auto;' });
@@ -11046,7 +11053,9 @@ h1{color:#d6c4a0}
 [style*="color: rgb(26, 18, 12)"]{color:#eee6e0 !important}
 /* ===== زند العود (SVG يُبنى بالجافاسكربت) ===== */
 #shared-oudSvg line[stroke="#111"]{stroke:#d4d4d4}
-#shared-oudSvg line[stroke="#3a3a3a"]{stroke:#9a9a9a}
+/* ألوان الأوتار بالداكن: نحاسي موحّد وفضي موحّد، أفتح من الفاتح حتى لا تختفي فوق خلفية الزند الداكنة (تشمل الوتر المهتزّ path وخطوط رأس الزند) */
+#shared-oudSvg line[stroke="#b4541a"],#shared-oudSvg path[stroke="#b4541a"]{stroke:#d98a4a}
+#shared-oudSvg line[stroke="#161616"],#shared-oudSvg path[stroke="#161616"]{stroke:#d0d0d0}
 #shared-oudSvg text[fill="#111"],#shared-oudSvg text[fill="#222"]{fill:#e6e6e6}
 #shared-oudSvg text[fill="#000000"]{fill:#f4efe6}
 #shared-oudSvg text[fill="#1b1410"]{fill:#bdd7f0}
